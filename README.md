@@ -8,6 +8,7 @@ Core technologies:
 
 **C/C++** 
 https://en.cppreference.com/w/
+
 Book (How I learned C++ initially): walter J savitch problem solving with C++
 freecode camp has a bunch of tutorials on C and C++ 
 
