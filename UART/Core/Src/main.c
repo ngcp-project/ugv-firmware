@@ -34,6 +34,12 @@
 /* USER CODE BEGIN PD */
 	uint8_t data[6] = {0xAA, 0x0C, 0x04, 0x00, 0x70, 0x2F};
 	uint8_t data_2[6] = {0xAA, 0x0C, 0x04, 0x00, 0x70, 0x20};
+
+/* First two bytes are Polulo commands to set the Baud address automatically,
+ * third byte is to set the servo number 0-5,
+ * and the last two bytes are for the servo pos. in 0.25 us steps LSB first,
+ * the middle pos. of the servo is 0x70 0x2E */
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -132,10 +138,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_UART_Transmit(&huart2, data, sizeof(data), 1000);
-	  HAL_Delay(2000);
-	  HAL_UART_Transmit(&huart2, data_2, sizeof(data_2), 1000);
-	  HAL_Delay(2000);
+	  HAL_UART_Transmit(&huart2, data, sizeof(data), 1000); // Sent data for position 1 via UART2
+	  HAL_Delay(2000); // Time delay for 2000 ms
+	  HAL_UART_Transmit(&huart2, data_2, sizeof(data_2), 1000); // Sent data for position 2 via UART3
+	  HAL_Delay(2000); // Time delay for 2000 ms
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
