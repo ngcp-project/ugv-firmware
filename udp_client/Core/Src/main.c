@@ -22,6 +22,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lwip/pbuf.h"
+#include "lwip/udp.h"
+#include "lwip/tcp.h"
+
+#include "stdio.h"
+#include "string.h"
+
 
 /* USER CODE END Includes */
 
@@ -42,7 +49,15 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+TIM_HandleTypeDef htim1;
+
 /* USER CODE BEGIN PV */
+
+extern struct netif gnetif;
+struct udp_pcb *upcb;
+char buffer[100];
+int counter;
+
 
 /* USER CODE END PV */
 
@@ -50,15 +65,21 @@
 void SystemClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
+
+void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
+		const ip_addr_t *addr, u16_t port);
+static void udp_client_send();
+
+void udp_client_connect();
+
+
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-extern struct netif gnetif;
-
 
 /* USER CODE END 0 */
 
@@ -101,7 +122,13 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_LWIP_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+
+  //Start HAL timer interrupt
+
+  udp_client_connect();
+  HAL_TIM_Base_Start_IT(&htim1);
 
   /* USER CODE END 2 */
 
@@ -109,10 +136,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
 	  ethernetif_input(&gnetif);
 	  ethernet_link_check_state(&gnetif);
-
-	  gnetif.input()
+	  //udpClient
+//	  gnetif.input()
 	  //ethernet_input(p, netif)
 	  sys_check_timeouts();
     /* USER CODE END WHILE */
@@ -173,6 +201,53 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 10800;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 10000;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+
 }
 
 /**
@@ -253,6 +328,87 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+
+	udp_client_send();
+}
+
+void udp_client_connect()
+{
+	err_t err;
+
+	// Create a new UDP control block
+	upcb = udp_new();
+
+	// Bind control block to module's IP address and port
+	// Static IP address: 192.168.2.150
+	// Arbitrary port # selection: 8
+	ip_addr_t my_ip;
+	IP_ADDR4(&my_ip, 192, 168, 2, 150);
+
+	// Binds udp client to local IP addres
+	udp_bind(upcb, &my_ip, 42179);
+
+
+	// Configure destination IP address
+	// Host ip address: 192.168.2.5
+	// Arbitrary port # selection: 12345
+	ip_addr_t DestIPaddr;
+	IP_ADDR4(&DestIPaddr, 192, 168, 2, 5);
+	err = udp_connect(upcb, &DestIPaddr, 12345);
+
+	if (err == HAL_OK)
+	{
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);
+		// Send message to server
+		// Add function here
+		udp_client_send();
+		// Set a receive callback for the upcb when server sends data to client
+		udp_recv(upcb, udp_receive_callback, NULL);
+
+	}
+}
+
+static void udp_client_send()
+{
+
+	struct pbuf *tx_buff;
+	char data[100];
+
+	int len = sprintf(data, "Sending UDP client message %d: ", counter);
+
+	// Allocate pbuf from pool
+	tx_buff = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
+
+	if (tx_buff != NULL)
+	{
+		// Copy data into pbuf
+		pbuf_take(tx_buff, data, len);
+
+		// Send udp data
+		udp_send(upcb, tx_buff);
+
+		// Free pbuf
+		pbuf_free(tx_buff);
+	}
+}
+
+void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
+		const ip_addr_t *addr, u16_t port)
+{
+	// Copy data from the pbuf
+	strncpy(buffer, (char *)p->payload, p->len);
+
+
+	// Increment message count
+	++counter;
+
+	// Free recieve pbuf
+	pbuf_free(p);
+}
 
 /* USER CODE END 4 */
 
