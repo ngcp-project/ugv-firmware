@@ -352,7 +352,8 @@ void udp_client_connect()
 	// Static IP address: 192.168.2.xxx
 	ip_addr_t my_ip;
 	IP_ADDR4(&my_ip, 192, 168, 5, 21); 	//STM ip when connected to RPI 5
-	//	IP_ADDR4(&my_ip, 192, 168, 2, 21); 	// STM ip when connected to linux desktop
+//	IP_ADDR4(&my_ip, 192, 168, 20, 21); 	//STM ip when connected to Jetson Orin
+//	IP_ADDR4(&my_ip, 192, 168, 2, 21); 	// STM ip when connected to linux desktop
 
 	// Binds udp protocol control block to a local IP address
 	// Arbitrary port # selection: 8
@@ -364,7 +365,7 @@ void udp_client_connect()
 	// Arbitrary port # selection: 12345
 	ip_addr_t DestIPaddr;
 	IP_ADDR4(&DestIPaddr, 192, 168, 5, 5);  //RPI 5 host ip address
-
+//	IP_ADDR4(&DestIPaddr, 192, 168, 20, 5);  //Jetson Orin Nano host ip address
 //	IP_ADDR4(&DestIPaddr, 192, 168, 2, 5);  //Desktop Host ip address
 	err = udp_connect(upcb, &DestIPaddr, 12345);
 

@@ -69,8 +69,8 @@ all: main-build
 main-build: servo_test.elf secondary-outputs
 
 # Tool invocations
-servo_test.elf servo_test.map: $(OBJS) $(USER_OBJS) /home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/servo_test/STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "servo_test.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/servo_test/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="servo_test.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+servo_test.elf servo_test.map: $(OBJS) $(USER_OBJS) /home/chris/NGCP/NGCP_24_25/ugv-firmware/servo_test/STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "servo_test.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/chris/NGCP/NGCP_24_25/ugv-firmware/servo_test/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="servo_test.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

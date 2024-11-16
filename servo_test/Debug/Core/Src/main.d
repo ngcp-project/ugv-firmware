@@ -29,7 +29,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_tim_ex.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart_ex.h \
- /home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/servo_test/Drivers/ugv_drivers/servo/ugv_servo.h
+ /home/chris/NGCP/NGCP_24_25/ugv-firmware/servo_test/Drivers/ugv_drivers/servo/ugv_servo.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:
 ../Core/Inc/stm32f7xx_hal_conf.h:
@@ -61,4 +61,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_tim_ex.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart_ex.h:
-/home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/servo_test/Drivers/ugv_drivers/servo/ugv_servo.h:
+/home/chris/NGCP/NGCP_24_25/ugv-firmware/servo_test/Drivers/ugv_drivers/servo/ugv_servo.h:

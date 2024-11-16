@@ -103,26 +103,34 @@ int main(void)
     steeringServo.timerInstance = &htim10;
     steeringServo.timerCCRX = &TIM10->CCR1;
     steeringServo.timerCh = TIM_CHANNEL_1;
+
+    /* Last Year's Steering Servo */
+    /*
     steeringServo.timerARR = 59999;
     steeringServo.minPulse = 500;
     steeringServo.maxPulse = 2500;
     steeringServo.timerPeriod = 20000;
     steeringServo.travelAngle = 270.0;
-
-    //  steeringServo.minLimit = 70.0;
-    //  steeringServo.maxLimit = 180.0;
-
-	//steeringServo.minLimit = 40.0;
-	//steeringServo.maxLimit = 220.0;
 	steeringServo.minLimit = 10.0;
 	steeringServo.maxLimit = 260.0;
-	//steeringServo.travelOffset = 125.0;
-	//steeringServo.travelOffset = 50;
+//	steeringServo.travelOffset = 125.0;
+//	steeringServo.travelOffset = 50;
 	steeringServo.travelOffset = 10;
+	*/
+
+    /* HS-985MG Servo */
+    steeringServo.timerARR = 59999;
+    steeringServo.minPulse = 500;
+    steeringServo.maxPulse = 2500;
+    steeringServo.timerPeriod = 20000;
+    steeringServo.travelAngle = 270.0;
+	steeringServo.minLimit = 1;
+	steeringServo.maxLimit = 270.0;
+	steeringServo.travelOffset = 0;
 
 	ugv_servoInitServo(&steeringServo);
 
-	float steer_val = 55.0;
+	float steer_val = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
