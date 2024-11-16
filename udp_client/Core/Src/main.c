@@ -128,6 +128,8 @@ int main(void)
   //Start HAL timer interrupt
 
   udp_client_connect();
+
+  // Interrupt occurs once every 250ms
   HAL_TIM_Base_Start_IT(&htim1);
 
   /* USER CODE END 2 */
@@ -333,7 +335,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
 
-	udp_client_send();
+	// Timer callback meant to send data from stm -> Rpi in a periodic manner
+
+//	udp_client_send();
 }
 
 void udp_client_connect()
@@ -341,31 +345,36 @@ void udp_client_connect()
 	err_t err;
 
 	// Create a new UDP control block
+	// Need to check for null return
 	upcb = udp_new();
 
 	// Bind control block to module's IP address and port
-	// Static IP address: 192.168.2.150
-	// Arbitrary port # selection: 8
+	// Static IP address: 192.168.2.xxx
 	ip_addr_t my_ip;
-	IP_ADDR4(&my_ip, 192, 168, 2, 150);
+	IP_ADDR4(&my_ip, 192, 168, 5, 21); 	//STM ip when connected to RPI 5
+	//	IP_ADDR4(&my_ip, 192, 168, 2, 21); 	// STM ip when connected to linux desktop
 
-	// Binds udp client to local IP addres
-	udp_bind(upcb, &my_ip, 42179);
+	// Binds udp protocol control block to a local IP address
+	// Arbitrary port # selection: 8
+	udp_bind(upcb, &my_ip, 8);
 
 
 	// Configure destination IP address
 	// Host ip address: 192.168.2.5
 	// Arbitrary port # selection: 12345
 	ip_addr_t DestIPaddr;
-	IP_ADDR4(&DestIPaddr, 192, 168, 2, 5);
+	IP_ADDR4(&DestIPaddr, 192, 168, 5, 5);  //RPI 5 host ip address
+
+//	IP_ADDR4(&DestIPaddr, 192, 168, 2, 5);  //Desktop Host ip address
 	err = udp_connect(upcb, &DestIPaddr, 12345);
 
 	if (err == HAL_OK)
 	{
+		// Blue LED
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);
 		// Send message to server
 		// Add function here
-		udp_client_send();
+//		udp_client_send();
 		// Set a receive callback for the upcb when server sends data to client
 		udp_recv(upcb, udp_receive_callback, NULL);
 
@@ -378,7 +387,7 @@ static void udp_client_send()
 	struct pbuf *tx_buff;
 	char data[100];
 
-	int len = sprintf(data, "Sending UDP client message %d: ", counter);
+	int len = sprintf(data, "Sending UDP client message: %d", counter);
 
 	// Allocate pbuf from pool
 	tx_buff = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
@@ -406,8 +415,10 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	// Increment message count
 	++counter;
 
-	// Free recieve pbuf
+	// Free recieve pbuf;
 	pbuf_free(p);
+
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 }
 
 /* USER CODE END 4 */

@@ -1,0 +1,51 @@
+!SESSION 2024-05-03 00:09:07.811 -----------------------------------------------
+eclipse.buildId=Version 1.14.0
+java.version=17.0.8.1
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Command-line arguments:  -os linux -ws gtk -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2024-05-03 00:10:47.552
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2024-05-03 00:10:47.553
+!MESSAGE Log4j2 initialized with config file /home/chris/stm_projects/freertos/.metadata/.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2024-05-03 00:10:49.555
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2024-05-03 00:12:24.103
+!MESSAGE Indexed 'F767ZI_freertos' (28 sources, 91 headers) in 2.32 sec: 7,868 declarations; 47,929 references; 0 unresolved inclusions; 1 syntax errors; 2 unresolved names (0.0036%)
+!SESSION 2024-05-03 02:39:56.440 -----------------------------------------------
+eclipse.buildId=Version 1.14.0
+java.version=17.0.8.1
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Command-line arguments:  -os linux -ws gtk -arch x86_64
+
+!ENTRY org.eclipse.core.resources 2 10035 2024-05-03 02:39:59.181
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2024-05-03 02:40:01.637
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2024-05-03 02:40:01.638
+!MESSAGE Log4j2 initialized with config file /home/chris/stm_projects/freertos/.metadata/.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2024-05-03 02:40:11.288
+!MESSAGE Started RMI Server, listening on port 41337
+!SESSION 2024-05-04 00:54:45.903 -----------------------------------------------
+eclipse.buildId=Version 1.14.0
+java.version=17.0.8.1
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Command-line arguments:  -os linux -ws gtk -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2024-05-04 00:54:50.331
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2024-05-04 00:54:50.333
+!MESSAGE Log4j2 initialized with config file /home/chris/stm_projects/freertos/.metadata/.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2024-05-04 00:54:54.170
+!MESSAGE Started RMI Server, listening on port 41337
