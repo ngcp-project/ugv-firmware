@@ -1219,7 +1219,8 @@ void udp_client_connect()
 	IP_ADDR4(&my_ip, 192, 168, 5, 21); 	//STM ip when connected to RPI 5
  8000a54:	4b15      	ldr	r3, [pc, #84]	; (8000aac <udp_client_connect+0x68>)
  8000a56:	60bb      	str	r3, [r7, #8]
-	//	IP_ADDR4(&my_ip, 192, 168, 2, 21); 	// STM ip when connected to linux desktop
+//	IP_ADDR4(&my_ip, 192, 168, 20, 21); 	//STM ip when connected to Jetson Orin
+//	IP_ADDR4(&my_ip, 192, 168, 2, 21); 	// STM ip when connected to linux desktop
 
 	// Binds udp protocol control block to a local IP address
 	// Arbitrary port # selection: 8
@@ -1238,7 +1239,7 @@ void udp_client_connect()
 	IP_ADDR4(&DestIPaddr, 192, 168, 5, 5);  //RPI 5 host ip address
  8000a68:	4b11      	ldr	r3, [pc, #68]	; (8000ab0 <udp_client_connect+0x6c>)
  8000a6a:	607b      	str	r3, [r7, #4]
-
+//	IP_ADDR4(&DestIPaddr, 192, 168, 20, 5);  //Jetson Orin Nano host ip address
 //	IP_ADDR4(&DestIPaddr, 192, 168, 2, 5);  //Desktop Host ip address
 	err = udp_connect(upcb, &DestIPaddr, 12345);
  8000a6c:	4b0e      	ldr	r3, [pc, #56]	; (8000aa8 <udp_client_connect+0x64>)

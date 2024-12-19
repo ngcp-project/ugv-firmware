@@ -30,6 +30,8 @@
 #include "string.h"
 
 #include "ugv_servo.h"  //Include header for servo driver
+#include "motor_control.h" // Motor Control Header for 2023 Driver
+
 
 
 /* USER CODE END Includes */
@@ -41,6 +43,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define MAX_DUTY 32767
 
 /* USER CODE END PD */
 
@@ -52,6 +55,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim10;
 
 UART_HandleTypeDef huart3;
@@ -60,9 +64,10 @@ UART_HandleTypeDef huart3;
 
 // instantiate steering servo struct
 ugvServo_t steeringServo;
-
+MotorControl ugv_drive_mtr;
 // Variable to control steering angle
 float steer_val = 0;
+float velocity_val = 0;
 
 extern struct netif gnetif;
 struct udp_pcb *upcb;
@@ -79,6 +84,7 @@ static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM10_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
@@ -138,6 +144,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM10_Init();
   MX_USART3_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   // 2022 Servo Driver
@@ -159,17 +166,24 @@ int main(void)
 	steeringServo.travelOffset = 10;
 	*/
 
-	/* HS-985MG Servo */
-	steeringServo.timerARR = 59999;
-	steeringServo.minPulse = 500;
-	steeringServo.maxPulse = 2500;
-	steeringServo.timerPeriod = 20000;
-	steeringServo.travelAngle = 270.0;
-	steeringServo.minLimit = 1;
-	steeringServo.maxLimit = 270.0;
-	steeringServo.travelOffset = 0;
+	// 2022 Servo Driver
+	  steeringServo.timerInstance = &htim10;
+	  steeringServo.timerCCRX = &TIM10->CCR1;
+	  steeringServo.timerCh = TIM_CHANNEL_1;
+	  steeringServo.timerARR = 59999;
+	  steeringServo.minPulse = 500;
+	  steeringServo.maxPulse = 2500;
+	  steeringServo.timerPeriod = 20000;
+	  steeringServo.travelAngle = 270.0;
+
+	  steeringServo.minLimit = 0.0;
+	  steeringServo.maxLimit = 105.0;
+
+	  steeringServo.travelOffset = 50;
 
 	ugv_servoInitServo(&steeringServo);
+	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
+
 
   udp_client_connect();
 
@@ -295,6 +309,59 @@ static void MX_TIM1_Init(void)
   /* USER CODE BEGIN TIM1_Init 2 */
 
   /* USER CODE END TIM1_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 1;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 32767;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+  HAL_TIM_MspPostInit(&htim2);
 
 }
 
@@ -452,7 +519,7 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
 
 	// Timer callback meant to send data from stm -> Rpi in a periodic manner
 
@@ -500,7 +567,6 @@ void udp_client_connect()
 
 static void udp_client_send()
 {
-
 	struct pbuf *tx_buff;
 	char data[100];
 
@@ -528,9 +594,6 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	// Copy data from the pbuf
 	strncpy(buffer, (char *)p->payload, p->len);
 
-	// Increment message count
-	++counter;
-
 	//Parse Input
 	uint8_t data_index = 0;
 	float drive_vals[10] = {0};
@@ -550,14 +613,19 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 		buffer_data = strtok(NULL, ",");
 	}
 
+
+
 	// Free recieve pbuf;
 	pbuf_free(p);
 
+	velocity_val = drive_vals[0];
+	steer_val = drive_vals[1];
 
 	//Might need to reset drive_vals to 0
 	// Set Steering Angle for Servo
-	//ugv_servoSetAngle(&steeringServo, steer_val);
-	ugv_servoSetAngle(&steeringServo, drive_vals[1]);
+	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+	//ugv_servoSetAngle(&steeringServo, drive_vals[1]);
+	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 }

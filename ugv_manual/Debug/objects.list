@@ -26,6 +26,7 @@
 "./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.o"
 "./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart_ex.o"
 "./Drivers/ugv_drivers/adc/ugv_adc.o"
+"./Drivers/ugv_drivers/drive_motor/motor_control.o"
 "./Drivers/ugv_drivers/drive_motor/ugv_drive_motor_utilities.o"
 "./Drivers/ugv_drivers/encoder/ugv_encoder.o"
 "./Drivers/ugv_drivers/linear_actuator/linearactuator.o"
