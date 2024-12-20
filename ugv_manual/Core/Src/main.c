@@ -57,6 +57,7 @@
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim10;
+TIM_HandleTypeDef htim13;
 
 UART_HandleTypeDef huart3;
 
@@ -68,6 +69,7 @@ MotorControl ugv_drive_mtr;
 // Variable to control steering angle
 float steer_val = 0;
 float velocity_val = 0;
+float heading_error = 0;
 
 extern struct netif gnetif;
 struct udp_pcb *upcb;
@@ -85,6 +87,7 @@ static void MX_TIM1_Init(void);
 static void MX_TIM10_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM13_Init(void);
 /* USER CODE BEGIN PFP */
 
 void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
@@ -93,6 +96,7 @@ static void udp_client_send();
 
 void udp_client_connect();
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 
 
 /* USER CODE END PFP */
@@ -145,6 +149,7 @@ int main(void)
   MX_TIM10_Init();
   MX_USART3_UART_Init();
   MX_TIM2_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
 
   // 2022 Servo Driver
@@ -170,7 +175,7 @@ int main(void)
 	  steeringServo.timerInstance = &htim10;
 	  steeringServo.timerCCRX = &TIM10->CCR1;
 	  steeringServo.timerCh = TIM_CHANNEL_1;
-	  steeringServo.timerARR = 59999;
+	  steeringServo.timerARR = htim10.Init.Period;
 	  steeringServo.minPulse = 500;
 	  steeringServo.maxPulse = 2500;
 	  steeringServo.timerPeriod = 20000;
@@ -184,13 +189,12 @@ int main(void)
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
 
-
   udp_client_connect();
 
   /* Start HAL timer interrupt
-  /  Interrupt occurs once every 250ms
+  /  Interrupt occurs once every 50ms
   */
-  HAL_TIM_Base_Start_IT(&htim1);
+  HAL_TIM_Base_Start_IT(&htim13);
 
   /* USER CODE END 2 */
 
@@ -385,7 +389,7 @@ static void MX_TIM10_Init(void)
   htim10.Instance = TIM10;
   htim10.Init.Prescaler = 71;
   htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim10.Init.Period = 59999;
+  htim10.Init.Period = 29999;
   htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
@@ -408,6 +412,37 @@ static void MX_TIM10_Init(void)
 
   /* USER CODE END TIM10_Init 2 */
   HAL_TIM_MspPostInit(&htim10);
+
+}
+
+/**
+  * @brief TIM13 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM13_Init(void)
+{
+
+  /* USER CODE BEGIN TIM13_Init 0 */
+
+  /* USER CODE END TIM13_Init 0 */
+
+  /* USER CODE BEGIN TIM13_Init 1 */
+
+  /* USER CODE END TIM13_Init 1 */
+  htim13.Instance = TIM13;
+  htim13.Init.Prescaler = 2700;
+  htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim13.Init.Period = 499;
+  htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim13.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim13) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM13_Init 2 */
+
+  /* USER CODE END TIM13_Init 2 */
 
 }
 
@@ -466,7 +501,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
@@ -477,8 +512,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
+  /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin PB9 */
+  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -520,6 +555,13 @@ static void MX_GPIO_Init(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+	static const float Kp_heading = 2.0;  //Kp value for heading controller
+
+
+	steer_val =  Kp_heading * heading_error;
+
+	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 
 	// Timer callback meant to send data from stm -> Rpi in a periodic manner
 
@@ -620,12 +662,13 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 
 	velocity_val = drive_vals[0];
 	steer_val = drive_vals[1];
+	heading_error = drive_vals[2]; //Receive Heading Error
 
 	//Might need to reset drive_vals to 0
 	// Set Steering Angle for Servo
-	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+//	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	//ugv_servoSetAngle(&steeringServo, drive_vals[1]);
-	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+//	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 }
