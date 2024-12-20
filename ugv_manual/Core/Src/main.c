@@ -563,6 +563,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 
+//	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+
 	// Timer callback meant to send data from stm -> Rpi in a periodic manner
 
 //	udp_client_send();
@@ -661,14 +663,14 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	pbuf_free(p);
 
 	velocity_val = drive_vals[0];
-	steer_val = drive_vals[1];
+	//steer_val = drive_vals[1];
 	heading_error = drive_vals[2]; //Receive Heading Error
 
 	//Might need to reset drive_vals to 0
 	// Set Steering Angle for Servo
-//	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+	//ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	//ugv_servoSetAngle(&steeringServo, drive_vals[1]);
-//	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 }

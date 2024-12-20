@@ -9,8 +9,8 @@
 ../Core/Src/main.c:454:13:MX_USART3_UART_Init	2
 ../Core/Src/main.c:489:13:MX_GPIO_Init	1
 ../Core/Src/main.c:555:6:HAL_TIM_PeriodElapsedCallback	1
-../Core/Src/main.c:571:6:udp_client_connect	2
-../Core/Src/main.c:610:13:udp_client_send	2
-../Core/Src/main.c:633:6:udp_receive_callback	4
-../Core/Src/main.c:680:6:MPU_Config	1
-../Core/Src/main.c:711:6:Error_Handler	1
+../Core/Src/main.c:573:6:udp_client_connect	2
+../Core/Src/main.c:612:13:udp_client_send	2
+../Core/Src/main.c:635:6:udp_receive_callback	4
+../Core/Src/main.c:682:6:MPU_Config	1
+../Core/Src/main.c:713:6:Error_Handler	1
