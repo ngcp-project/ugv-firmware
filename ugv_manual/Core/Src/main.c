@@ -194,7 +194,9 @@ int main(void)
   /* Start HAL timer interrupt
   /  Interrupt occurs once every 50ms
   */
-  HAL_TIM_Base_Start_IT(&htim13);
+  //COMMENTED OUT TIMER UPDATE
+  //HAL_TIM_Base_Start_IT(&htim13);
+
 
   /* USER CODE END 2 */
 
@@ -552,23 +554,27 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
-	static const float Kp_heading = 2.0;  //Kp value for heading controller
+/*
+ * The timer callback is executing the heading control loop every T = $(50ms)
+ *
+ */
 
 
-	steer_val =  Kp_heading * heading_error;
-
-	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
-
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+//{
+//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+//
+//	static const float Kp_heading = 1.5;  //Kp value for heading controller
+//
+//	steer_val =  Kp_heading * heading_error;
+//	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 //	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
-
-	// Timer callback meant to send data from stm -> Rpi in a periodic manner
-
-//	udp_client_send();
-}
+//
+//	// Timer callback meant to send data from stm -> Rpi in a periodic manner
+//
+////	udp_client_send();
+//}
 
 void udp_client_connect()
 {
@@ -663,15 +669,15 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	pbuf_free(p);
 
 	velocity_val = drive_vals[0];
-	//steer_val = drive_vals[1];
-	heading_error = drive_vals[2]; //Receive Heading Error
+	steer_val = drive_vals[1];
+	//heading_error = drive_vals[2]; //Receive Heading Error
 
 	//Might need to reset drive_vals to 0
 	// Set Steering Angle for Servo
-	//ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
-	//ugv_servoSetAngle(&steeringServo, drive_vals[1]);
+//	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+//	//ugv_servoSetAngle(&steeringServo, drive_vals[1]);
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
-
+	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 }
 
