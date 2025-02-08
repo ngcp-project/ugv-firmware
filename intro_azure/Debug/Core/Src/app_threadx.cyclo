@@ -1,3 +1,0 @@
-../Core/Src/app_threadx.c:93:6:App_ThreadX_Init	4
-../Core/Src/app_threadx.c:170:6:MX_ThreadX_Init	1
-../Core/Src/app_threadx.c:189:6:my_dhcp_thread_entry	6
