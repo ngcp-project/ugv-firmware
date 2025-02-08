@@ -119,13 +119,17 @@ int main(void)
 	*/
 
     /* HS-985MG Servo */
-    steeringServo.timerARR = 59999;
+    steeringServo.timerARR = 60000;
     steeringServo.minPulse = 500;
-    steeringServo.maxPulse = 2500;
+    //steeringServo.maxPulse = 2500;
+    steeringServo.maxPulse = 2700;
     steeringServo.timerPeriod = 20000;
-    steeringServo.travelAngle = 270.0;
-	steeringServo.minLimit = 1;
-	steeringServo.maxLimit = 270.0;
+    steeringServo.travelAngle = 360.0;
+//	steeringServo.minLimit = 1;
+//	steeringServo.maxLimit = 270.0;
+
+	steeringServo.minLimit = 0;
+	steeringServo.maxLimit = 360.0;
 	steeringServo.travelOffset = 0;
 
 	ugv_servoInitServo(&steeringServo);

@@ -5327,21 +5327,21 @@ LOAD /opt/st/stm32cubeide_1.14.0/plugins/com.st.stm32cube.ide.mcu.externaltools.
  .comment       0x0000000000000043       0x44 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.o
  .comment       0x0000000000000043       0x44 ./Drivers/ugv_drivers/servo/ugv_servo.o
 
-.debug_info     0x0000000000000000     0xd401
- .debug_info    0x0000000000000000     0x1321 ./Core/Src/main.o
- .debug_info    0x0000000000001321     0x1104 ./Core/Src/stm32f7xx_hal_msp.o
- .debug_info    0x0000000000002425      0x112 ./Core/Src/stm32f7xx_it.o
- .debug_info    0x0000000000002537      0x6ed ./Core/Src/system_stm32f7xx.o
- .debug_info    0x0000000000002c24       0x23 ./Core/Startup/startup_stm32f767zitx.o
- .debug_info    0x0000000000002c47      0xa4c ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.o
- .debug_info    0x0000000000003693      0xfc0 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.o
- .debug_info    0x0000000000004653      0x6f3 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.o
- .debug_info    0x0000000000004d46      0x8cd ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.o
- .debug_info    0x0000000000005613      0x937 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.o
- .debug_info    0x0000000000005f4a      0x6e1 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.o
- .debug_info    0x000000000000662b     0x2ad5 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.o
- .debug_info    0x0000000000009100     0x3adc ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.o
- .debug_info    0x000000000000cbdc      0x825 ./Drivers/ugv_drivers/servo/ugv_servo.o
+.debug_info     0x0000000000000000     0xd402
+ .debug_info    0x0000000000000000     0x1322 ./Core/Src/main.o
+ .debug_info    0x0000000000001322     0x1104 ./Core/Src/stm32f7xx_hal_msp.o
+ .debug_info    0x0000000000002426      0x112 ./Core/Src/stm32f7xx_it.o
+ .debug_info    0x0000000000002538      0x6ed ./Core/Src/system_stm32f7xx.o
+ .debug_info    0x0000000000002c25       0x23 ./Core/Startup/startup_stm32f767zitx.o
+ .debug_info    0x0000000000002c48      0xa4c ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.o
+ .debug_info    0x0000000000003694      0xfc0 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.o
+ .debug_info    0x0000000000004654      0x6f3 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.o
+ .debug_info    0x0000000000004d47      0x8cd ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.o
+ .debug_info    0x0000000000005614      0x937 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.o
+ .debug_info    0x0000000000005f4b      0x6e1 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.o
+ .debug_info    0x000000000000662c     0x2ad5 ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.o
+ .debug_info    0x0000000000009101     0x3adc ./Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.o
+ .debug_info    0x000000000000cbdd      0x825 ./Drivers/ugv_drivers/servo/ugv_servo.o
 
 .debug_abbrev   0x0000000000000000     0x1abb
  .debug_abbrev  0x0000000000000000      0x287 ./Core/Src/main.o

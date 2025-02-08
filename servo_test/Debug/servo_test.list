@@ -29,9 +29,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
  12 .comment      00000043  00000000  00000000  0002003a  2**0
                   CONTENTS, READONLY
- 13 .debug_info   0000d401  00000000  00000000  0002007d  2**0
+ 13 .debug_info   0000d402  00000000  00000000  0002007d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_abbrev 00001abb  00000000  00000000  0002d47e  2**0
+ 14 .debug_abbrev 00001abb  00000000  00000000  0002d47f  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  15 .debug_aranges 00000b60  00000000  00000000  0002ef40  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -406,15 +406,16 @@ int main(void)
 	*/
 
     /* HS-985MG Servo */
-    steeringServo.timerARR = 59999;
+    steeringServo.timerARR = 60000;
  8000560:	4b13      	ldr	r3, [pc, #76]	; (80005b0 <main+0x7c>)
- 8000562:	f64e 225f 	movw	r2, #59999	; 0xea5f
+ 8000562:	f64e 2260 	movw	r2, #60000	; 0xea60
  8000566:	815a      	strh	r2, [r3, #10]
     steeringServo.minPulse = 500;
  8000568:	4b11      	ldr	r3, [pc, #68]	; (80005b0 <main+0x7c>)
  800056a:	4a14      	ldr	r2, [pc, #80]	; (80005bc <main+0x88>)
  800056c:	60da      	str	r2, [r3, #12]
-    steeringServo.maxPulse = 2500;
+    //steeringServo.maxPulse = 2500;
+    steeringServo.maxPulse = 2700;
  800056e:	4b10      	ldr	r3, [pc, #64]	; (80005b0 <main+0x7c>)
  8000570:	4a13      	ldr	r2, [pc, #76]	; (80005c0 <main+0x8c>)
  8000572:	611a      	str	r2, [r3, #16]
@@ -422,15 +423,18 @@ int main(void)
  8000574:	4b0e      	ldr	r3, [pc, #56]	; (80005b0 <main+0x7c>)
  8000576:	4a13      	ldr	r2, [pc, #76]	; (80005c4 <main+0x90>)
  8000578:	615a      	str	r2, [r3, #20]
-    steeringServo.travelAngle = 270.0;
+    steeringServo.travelAngle = 360.0;
  800057a:	4b0d      	ldr	r3, [pc, #52]	; (80005b0 <main+0x7c>)
  800057c:	4a12      	ldr	r2, [pc, #72]	; (80005c8 <main+0x94>)
  800057e:	625a      	str	r2, [r3, #36]	; 0x24
-	steeringServo.minLimit = 1;
+//	steeringServo.minLimit = 1;
+//	steeringServo.maxLimit = 270.0;
+
+	steeringServo.minLimit = 0;
  8000580:	4b0b      	ldr	r3, [pc, #44]	; (80005b0 <main+0x7c>)
- 8000582:	f04f 527e 	mov.w	r2, #1065353216	; 0x3f800000
+ 8000582:	f04f 0200 	mov.w	r2, #0
  8000586:	62da      	str	r2, [r3, #44]	; 0x2c
-	steeringServo.maxLimit = 270.0;
+	steeringServo.maxLimit = 360.0;
  8000588:	4b09      	ldr	r3, [pc, #36]	; (80005b0 <main+0x7c>)
  800058a:	4a0f      	ldr	r2, [pc, #60]	; (80005c8 <main+0x94>)
  800058c:	631a      	str	r2, [r3, #48]	; 0x30
@@ -461,9 +465,9 @@ int main(void)
  80005b4:	20000028 	.word	0x20000028
  80005b8:	40014434 	.word	0x40014434
  80005bc:	43fa0000 	.word	0x43fa0000
- 80005c0:	451c4000 	.word	0x451c4000
+ 80005c0:	4528c000 	.word	0x4528c000
  80005c4:	469c4000 	.word	0x469c4000
- 80005c8:	43870000 	.word	0x43870000
+ 80005c8:	43b40000 	.word	0x43b40000
 
 080005cc <SystemClock_Config>:
 /**
