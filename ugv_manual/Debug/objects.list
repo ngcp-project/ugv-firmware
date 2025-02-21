@@ -29,6 +29,7 @@
 "./Drivers/ugv_drivers/drive_motor/motor_control.o"
 "./Drivers/ugv_drivers/drive_motor/ugv_drive_motor_utilities.o"
 "./Drivers/ugv_drivers/encoder/ugv_encoder.o"
+"./Drivers/ugv_drivers/f7_i2c_master/F7_I2C_Master.o"
 "./Drivers/ugv_drivers/linear_actuator/linearactuator.o"
 "./Drivers/ugv_drivers/pid/ugv_pid.o"
 "./Drivers/ugv_drivers/servo/ugv_servo.o"

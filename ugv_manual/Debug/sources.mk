@@ -45,6 +45,7 @@ Drivers/STM32F7xx_HAL_Driver/Src \
 Drivers/ugv_drivers/adc \
 Drivers/ugv_drivers/drive_motor \
 Drivers/ugv_drivers/encoder \
+Drivers/ugv_drivers/f7_i2c_master \
 Drivers/ugv_drivers/linear_actuator \
 Drivers/ugv_drivers/pid \
 Drivers/ugv_drivers/servo \

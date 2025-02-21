@@ -31,6 +31,7 @@
 
 #include "ugv_servo.h"  //Include header for servo driver
 #include "motor_control.h" // Motor Control Header for 2023 Driver
+#include "F7_I2C_Master.h"
 
 
 
@@ -54,6 +55,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+I2C_HandleTypeDef hi2c1;
+
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim10;
@@ -62,6 +65,9 @@ TIM_HandleTypeDef htim13;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+
+F7_I2C_Master F7_i2c_master;
+
 
 // instantiate steering servo struct
 ugvServo_t steeringServo;
@@ -88,6 +94,7 @@ static void MX_TIM10_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM13_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
@@ -150,6 +157,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_TIM2_Init();
   MX_TIM13_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   // 2022 Servo Driver
@@ -188,6 +196,8 @@ int main(void)
 
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
+	ugv_init_F7_Master(&F7_i2c_master, &hi2c1, I2C_BUFF_SIZE, F3_SLAVE_ADDRESS, L4_SLAVE_ADDRESS);
+
 
   udp_client_connect();
 
@@ -211,6 +221,10 @@ int main(void)
 //	  gnetif.input()
 	  //ethernet_input(p, netif)
 	  sys_check_timeouts();
+
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", 10, 20, 0); //Temporarily hard-coding buffer size
+	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -269,6 +283,54 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.Timing = 0x6000030D;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
@@ -503,7 +565,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin|GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
@@ -514,8 +576,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin PB9 */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin|GPIO_PIN_9;
+  /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -560,21 +622,12 @@ static void MX_GPIO_Init(void)
  */
 
 
-//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-//{
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
 //	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
-//
-//	static const float Kp_heading = 1.5;  //Kp value for heading controller
-//
-//	steer_val =  Kp_heading * heading_error;
-//	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
-//	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
-//
-//	// Timer callback meant to send data from stm -> Rpi in a periodic manner
-//
-////	udp_client_send();
-//}
+//	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", 10, 20, 0); //Temporarily hard-coding buffer size
+//	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
+}
 
 void udp_client_connect()
 {
