@@ -77,6 +77,11 @@ float steer_val = 0;
 float velocity_val = 0;
 float heading_error = 0;
 
+
+// Temporary vars for Payload Arm Control
+int8_t arm_cmds[5];
+
+
 extern struct netif gnetif;
 struct udp_pcb *upcb;
 char buffer[100];
@@ -223,7 +228,7 @@ int main(void)
 	  sys_check_timeouts();
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", 10, 20, 0); //Temporarily hard-coding buffer size
+	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", arm_cmds[0], arm_cmds[1], 0); //Temporarily hard-coding buffer size
 	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
     /* USER CODE END WHILE */
 
@@ -723,6 +728,10 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 
 	velocity_val = drive_vals[0];
 	steer_val = drive_vals[1];
+
+	//Temporary addition for payload arm acutation
+	arm_cmds[0] = (int8_t)drive_vals[2];
+	arm_cmds[1] = (int8_t)drive_vals[3];
 	//heading_error = drive_vals[2]; //Receive Heading Error
 
 	//Might need to reset drive_vals to 0
