@@ -1,0 +1,48 @@
+/*
+ * ENCODER.c
+ *
+ *  Created on: Mar 08, 2025
+ *      Author: Korbinian Schoerghuber
+ *
+ *      Ver. 1.0
+ */
+
+#include "ugv_encoder.h"
+
+
+		float wheel_diameter = 5; //wheel diameter in inch
+		float enc_counts = 659.232; //encoder counts/rotation
+		float time = 2400; //1min/25ms
+
+float encoder(uint32_t e)
+{
+		// encoder variables
+		float wheel_rpm = 0;
+		float velocity = 0;
+		static uint32_t encoder_value = 0;
+		static uint32_t prev_encoder_value = 0;
+		uint32_t delta_encoder_value = 0;
+
+	// encoder
+	prev_encoder_value = encoder_value;
+	encoder_value = e;
+
+	if(encoder_value >= prev_encoder_value)
+	{
+		delta_encoder_value = encoder_value - prev_encoder_value;
+	}
+	else
+	{
+		delta_encoder_value = encoder_value - (prev_encoder_value - 65536);  // to handle the overflowed of a 2^16 bit variable
+	}
+
+	wheel_rpm = (delta_encoder_value / enc_counts) * time; //encoder / encoder counts/rotation * 1min/25ms
+	velocity = wheel_diameter * PI * ft_in * wheel_rpm * ftpm_mph; // velocity in mph
+	return velocity;
+}
+
+
+
+
+
+
