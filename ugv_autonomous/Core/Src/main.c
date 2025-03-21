@@ -560,12 +560,24 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	//Ensure to provide saturation limits to prevent windup due to the integral term
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
 
+	static const float Ki_heading = 0.15;
 	static const float Kp_heading = 1.5;  //Kp value for heading controller
+	static const float time_step = 0.025;
 
-	steer_val =  Kp_heading * heading_error;
+	static float integral_term = 0;
+
+	integral_term += heading_error * time_step;
+
+	if (integral_term > steeringServo.maxLimit)
+		integral_term = steeringServo.maxLimit;
+	if (integral_term < steeringServo.minLimit)
+		integral_term = steeringServo.minLimit;
+
+	steer_val =  Kp_heading * heading_error + Ki_heading * integral_term;  //Implementation of a PI controller
 	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 
