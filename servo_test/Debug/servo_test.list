@@ -390,15 +390,15 @@ int main(void)
 
   // 2022 Servo Driver
     steeringServo.timerInstance = &htim10;
- 800054e:	4b18      	ldr	r3, [pc, #96]	; (80005b0 <main+0x7c>)
- 8000550:	4a18      	ldr	r2, [pc, #96]	; (80005b4 <main+0x80>)
+ 800054e:	4b17      	ldr	r3, [pc, #92]	; (80005ac <main+0x78>)
+ 8000550:	4a17      	ldr	r2, [pc, #92]	; (80005b0 <main+0x7c>)
  8000552:	601a      	str	r2, [r3, #0]
     steeringServo.timerCCRX = &TIM10->CCR1;
- 8000554:	4b16      	ldr	r3, [pc, #88]	; (80005b0 <main+0x7c>)
- 8000556:	4a18      	ldr	r2, [pc, #96]	; (80005b8 <main+0x84>)
+ 8000554:	4b15      	ldr	r3, [pc, #84]	; (80005ac <main+0x78>)
+ 8000556:	4a17      	ldr	r2, [pc, #92]	; (80005b4 <main+0x80>)
  8000558:	605a      	str	r2, [r3, #4]
     steeringServo.timerCh = TIM_CHANNEL_1;
- 800055a:	4b15      	ldr	r3, [pc, #84]	; (80005b0 <main+0x7c>)
+ 800055a:	4b14      	ldr	r3, [pc, #80]	; (80005ac <main+0x78>)
  800055c:	2200      	movs	r2, #0
  800055e:	811a      	strh	r2, [r3, #8]
 //	steeringServo.travelOffset = 50;
@@ -407,67 +407,67 @@ int main(void)
 
     /* HS-985MG Servo */
     steeringServo.timerARR = 60000;
- 8000560:	4b13      	ldr	r3, [pc, #76]	; (80005b0 <main+0x7c>)
+ 8000560:	4b12      	ldr	r3, [pc, #72]	; (80005ac <main+0x78>)
  8000562:	f64e 2260 	movw	r2, #60000	; 0xea60
  8000566:	815a      	strh	r2, [r3, #10]
     steeringServo.minPulse = 500;
- 8000568:	4b11      	ldr	r3, [pc, #68]	; (80005b0 <main+0x7c>)
- 800056a:	4a14      	ldr	r2, [pc, #80]	; (80005bc <main+0x88>)
+ 8000568:	4b10      	ldr	r3, [pc, #64]	; (80005ac <main+0x78>)
+ 800056a:	4a13      	ldr	r2, [pc, #76]	; (80005b8 <main+0x84>)
  800056c:	60da      	str	r2, [r3, #12]
     //steeringServo.maxPulse = 2500;
     steeringServo.maxPulse = 2700;
- 800056e:	4b10      	ldr	r3, [pc, #64]	; (80005b0 <main+0x7c>)
- 8000570:	4a13      	ldr	r2, [pc, #76]	; (80005c0 <main+0x8c>)
+ 800056e:	4b0f      	ldr	r3, [pc, #60]	; (80005ac <main+0x78>)
+ 8000570:	4a12      	ldr	r2, [pc, #72]	; (80005bc <main+0x88>)
  8000572:	611a      	str	r2, [r3, #16]
     steeringServo.timerPeriod = 20000;
- 8000574:	4b0e      	ldr	r3, [pc, #56]	; (80005b0 <main+0x7c>)
- 8000576:	4a13      	ldr	r2, [pc, #76]	; (80005c4 <main+0x90>)
+ 8000574:	4b0d      	ldr	r3, [pc, #52]	; (80005ac <main+0x78>)
+ 8000576:	4a12      	ldr	r2, [pc, #72]	; (80005c0 <main+0x8c>)
  8000578:	615a      	str	r2, [r3, #20]
     steeringServo.travelAngle = 360.0;
- 800057a:	4b0d      	ldr	r3, [pc, #52]	; (80005b0 <main+0x7c>)
- 800057c:	4a12      	ldr	r2, [pc, #72]	; (80005c8 <main+0x94>)
+ 800057a:	4b0c      	ldr	r3, [pc, #48]	; (80005ac <main+0x78>)
+ 800057c:	4a11      	ldr	r2, [pc, #68]	; (80005c4 <main+0x90>)
  800057e:	625a      	str	r2, [r3, #36]	; 0x24
 //	steeringServo.minLimit = 1;
 //	steeringServo.maxLimit = 270.0;
 
 	steeringServo.minLimit = 0;
- 8000580:	4b0b      	ldr	r3, [pc, #44]	; (80005b0 <main+0x7c>)
+ 8000580:	4b0a      	ldr	r3, [pc, #40]	; (80005ac <main+0x78>)
  8000582:	f04f 0200 	mov.w	r2, #0
  8000586:	62da      	str	r2, [r3, #44]	; 0x2c
 	steeringServo.maxLimit = 360.0;
- 8000588:	4b09      	ldr	r3, [pc, #36]	; (80005b0 <main+0x7c>)
- 800058a:	4a0f      	ldr	r2, [pc, #60]	; (80005c8 <main+0x94>)
+ 8000588:	4b08      	ldr	r3, [pc, #32]	; (80005ac <main+0x78>)
+ 800058a:	4a0e      	ldr	r2, [pc, #56]	; (80005c4 <main+0x90>)
  800058c:	631a      	str	r2, [r3, #48]	; 0x30
 	steeringServo.travelOffset = 0;
- 800058e:	4b08      	ldr	r3, [pc, #32]	; (80005b0 <main+0x7c>)
+ 800058e:	4b07      	ldr	r3, [pc, #28]	; (80005ac <main+0x78>)
  8000590:	f04f 0200 	mov.w	r2, #0
  8000594:	629a      	str	r2, [r3, #40]	; 0x28
 
 	ugv_servoInitServo(&steeringServo);
- 8000596:	4806      	ldr	r0, [pc, #24]	; (80005b0 <main+0x7c>)
+ 8000596:	4805      	ldr	r0, [pc, #20]	; (80005ac <main+0x78>)
  8000598:	f003 fa65 	bl	8003a66 <ugv_servoInitServo>
 
-	float steer_val = 0;
- 800059c:	f04f 0300 	mov.w	r3, #0
- 80005a0:	607b      	str	r3, [r7, #4]
+	float steer_val = 200;
+ 800059c:	4b0a      	ldr	r3, [pc, #40]	; (80005c8 <main+0x94>)
+ 800059e:	607b      	str	r3, [r7, #4]
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 	  ugv_servoSetAngle(&steeringServo, steer_val);
- 80005a2:	ed97 0a01 	vldr	s0, [r7, #4]
- 80005a6:	4802      	ldr	r0, [pc, #8]	; (80005b0 <main+0x7c>)
- 80005a8:	f003 faa1 	bl	8003aee <ugv_servoSetAngle>
- 80005ac:	e7f9      	b.n	80005a2 <main+0x6e>
- 80005ae:	bf00      	nop
- 80005b0:	200000fc 	.word	0x200000fc
- 80005b4:	20000028 	.word	0x20000028
- 80005b8:	40014434 	.word	0x40014434
- 80005bc:	43fa0000 	.word	0x43fa0000
- 80005c0:	4528c000 	.word	0x4528c000
- 80005c4:	469c4000 	.word	0x469c4000
- 80005c8:	43b40000 	.word	0x43b40000
+ 80005a0:	ed97 0a01 	vldr	s0, [r7, #4]
+ 80005a4:	4801      	ldr	r0, [pc, #4]	; (80005ac <main+0x78>)
+ 80005a6:	f003 faa2 	bl	8003aee <ugv_servoSetAngle>
+ 80005aa:	e7f9      	b.n	80005a0 <main+0x6c>
+ 80005ac:	200000fc 	.word	0x200000fc
+ 80005b0:	20000028 	.word	0x20000028
+ 80005b4:	40014434 	.word	0x40014434
+ 80005b8:	43fa0000 	.word	0x43fa0000
+ 80005bc:	4528c000 	.word	0x4528c000
+ 80005c0:	469c4000 	.word	0x469c4000
+ 80005c4:	43b40000 	.word	0x43b40000
+ 80005c8:	43480000 	.word	0x43480000
 
 080005cc <SystemClock_Config>:
 /**

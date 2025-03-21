@@ -134,7 +134,7 @@ int main(void)
 
 	ugv_servoInitServo(&steeringServo);
 
-	float steer_val = 0;
+	float steer_val = 200;
   /* USER CODE END 2 */
 
   /* Infinite loop */
