@@ -28,6 +28,7 @@
 
 #include "stdio.h"
 #include "string.h"
+#include "math.h"
 
 #include "ugv_servo.h"  //Include header for servo driver
 #include "motor_control.h" // Motor Control Header for 2023 Driver
@@ -50,6 +51,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
+#define RAD_DEGREE_CONV (180/M_PI)
+
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -63,13 +67,23 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 
+// UGV_LENGTH is the wheel to wheel length of the UGV in feet
+const float UGV_LENGTH = 1.7;
+
+
 // instantiate steering servo struct
 ugvServo_t steeringServo;
 MotorControl ugv_drive_mtr;
+
 // Variable to control steering angle
 float steer_val = 0;
 float velocity_val = 0;
 float heading_error = 0;
+float object_distance = 0;
+
+// Flags that are asserted when == 1
+uint8_t auto_mode = 0;
+uint8_t obstacle_flag = 0;
 
 extern struct netif gnetif;
 struct udp_pcb *upcb;
@@ -564,11 +578,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
 
-	static const float Ki_heading = 0.15;
+	static const float Ki_heading = 0.15; //Ki value for heading controller
 	static const float Kp_heading = 1.5;  //Kp value for heading controller
 	static const float time_step = 0.025;
 
 	static float integral_term = 0;
+
 
 	integral_term += heading_error * time_step;
 
@@ -577,7 +592,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (integral_term < steeringServo.minLimit)
 		integral_term = steeringServo.minLimit;
 
-	steer_val =  Kp_heading * heading_error + Ki_heading * integral_term;  //Implementation of a PI controller
+	if (obstacle_flag == 1 && object_distance != 0) //Obstacle was detected
+	{
+
+		// Kinematics for UGV obstacle avoidance logic
+		steer_val = RAD_DEGREE_CONV * atan2(UGV_LENGTH, object_distance);
+		steer_val = steer_val/100; //Normalize the steering so that ugv_servoSetAngle() will command an appropriate value
+	}
+	else
+	{
+		steer_val =  Kp_heading * heading_error + Ki_heading * integral_term;  //Implementation of a PI controller
+	}
+
 	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 
