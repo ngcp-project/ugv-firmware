@@ -210,7 +210,7 @@ int main(void)
   /  Interrupt occurs once every 50ms
   */
   //COMMENTED OUT TIMER UPDATE
-  //HAL_TIM_Base_Start_IT(&htim13);
+  HAL_TIM_Base_Start_IT(&htim13);
 
 
   /* USER CODE END 2 */
@@ -228,8 +228,8 @@ int main(void)
 	  sys_check_timeouts();
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", arm_cmds[0], arm_cmds[1], 0); //Temporarily hard-coding buffer size
-	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
+//	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", arm_cmds[0], arm_cmds[1], 0); //Temporarily hard-coding buffer size
+//	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -570,10 +570,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|GPIO_PIN_15|LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
@@ -581,8 +584,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
+  /*Configure GPIO pins : LD1_Pin LD3_Pin PB15 LD2_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|GPIO_PIN_15|LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -600,6 +603,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : USB_SOF_Pin USB_ID_Pin USB_DM_Pin USB_DP_Pin */
   GPIO_InitStruct.Pin = USB_SOF_Pin|USB_ID_Pin|USB_DM_Pin|USB_DP_Pin;
@@ -632,6 +642,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
 //	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", 10, 20, 0); //Temporarily hard-coding buffer size
 //	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
+
+	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+
+
 }
 
 void udp_client_connect()
@@ -738,8 +753,8 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	// Set Steering Angle for Servo
 //	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 //	//ugv_servoSetAngle(&steeringServo, drive_vals[1]);
-	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
-	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+//	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+//	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 }
 
