@@ -79,11 +79,12 @@ MotorControl ugv_drive_mtr;
 float steer_val = 0;
 float velocity_val = 0;
 float heading_error = 0;
-float object_distance = 0;
+float object_distance[5] = {0}; //contains 5 distance measurements from depth camera
 
 // Flags that are asserted when == 1
-uint8_t auto_mode = 0;
-uint8_t obstacle_flag = 0;
+int auto_mode = 0;
+int obstacle_flag = 0;
+
 
 extern struct netif gnetif;
 struct udp_pcb *upcb;
@@ -171,44 +172,29 @@ int main(void)
 	steeringServo.timerCCRX = &TIM10->CCR1;
 	steeringServo.timerCh = TIM_CHANNEL_1;
 
-	/* Last Year's Steering Servo */
-	/*
-	steeringServo.timerARR = 59999;
+	steeringServo.timerInstance = &htim10;
+	steeringServo.timerCCRX = &TIM10->CCR1;
+	steeringServo.timerCh = TIM_CHANNEL_1;
+	steeringServo.timerARR = htim10.Init.Period;
 	steeringServo.minPulse = 500;
 	steeringServo.maxPulse = 2500;
 	steeringServo.timerPeriod = 20000;
 	steeringServo.travelAngle = 270.0;
-	steeringServo.minLimit = 10.0;
-	steeringServo.maxLimit = 260.0;
-	//	steeringServo.travelOffset = 125.0;
-	//	steeringServo.travelOffset = 50;
-	steeringServo.travelOffset = 10;
-	*/
 
-	// 2022 Servo Driver
-	  steeringServo.timerInstance = &htim10;
-	  steeringServo.timerCCRX = &TIM10->CCR1;
-	  steeringServo.timerCh = TIM_CHANNEL_1;
-	  steeringServo.timerARR = htim10.Init.Period;
-	  steeringServo.minPulse = 500;
-	  steeringServo.maxPulse = 2500;
-	  steeringServo.timerPeriod = 20000;
-	  steeringServo.travelAngle = 270.0;
+	steeringServo.minLimit = 0.0;
+	steeringServo.maxLimit = 105.0;
 
-	  steeringServo.minLimit = 0.0;
-	  steeringServo.maxLimit = 105.0;
-
-	  steeringServo.travelOffset = 50;
+	steeringServo.travelOffset = 50;
 
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
 
-  udp_client_connect();
+	udp_client_connect();
 
-  /* Start HAL timer interrupt
-  /  Interrupt occurs once every 50ms
-  */
-  HAL_TIM_Base_Start_IT(&htim13);
+	/* Start HAL timer interrupt
+	/  Interrupt occurs once every 50ms
+	*/
+	HAL_TIM_Base_Start_IT(&htim13);
 
   /* USER CODE END 2 */
 
@@ -592,11 +578,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (integral_term < steeringServo.minLimit)
 		integral_term = steeringServo.minLimit;
 
-	if (obstacle_flag == 1 && object_distance != 0) //Obstacle was detected
+
+	// Add logic to account for detecting objects to the left and right
+	if (obstacle_flag >= 1 && object_distance[2] != 0) //Obstacle was detected
 	{
 
 		// Kinematics for UGV obstacle avoidance logic
-		steer_val = RAD_DEGREE_CONV * atan2(UGV_LENGTH, object_distance);
+		steer_val = RAD_DEGREE_CONV * atan2(UGV_LENGTH, object_distance[2]);
 		steer_val = steer_val/100; //Normalize the steering so that ugv_servoSetAngle() will command an appropriate value
 	}
 	else
@@ -623,9 +611,7 @@ void udp_client_connect()
 	// Bind control block to module's IP address and port
 	// Static IP address: 192.168.2.xxx
 	ip_addr_t my_ip;
-//	IP_ADDR4(&my_ip, 192, 168, 5, 21); 	//STM ip when connected to RPI 5
-	IP_ADDR4(&my_ip, 192, 168, 20, 21); //STM ip when connected to Jetson Orin
-//	IP_ADDR4(&my_ip, 192, 168, 2, 21); 	// STM ip when connected to linux desktop
+	IP_ADDR4(&my_ip, 192, 168, 20, 21); //STM IP address
 
 	// Binds udp protocol control block to a local IP address
 	// Arbitrary port # selection: 8
@@ -634,11 +620,9 @@ void udp_client_connect()
 
 	// Configure destination IP address
 	// Host ip address: 192.168.2.5
-	// Arbitrary port # selection: 12345
 	ip_addr_t DestIPaddr;
-//	IP_ADDR4(&DestIPaddr, 192, 168, 5, 5);  //RPI 5 host ip address
-	IP_ADDR4(&DestIPaddr, 192, 168, 20, 5);  //Jetson Orin Nano host ip address
-//	IP_ADDR4(&DestIPaddr, 192, 168, 2, 5);  //Desktop Host ip address
+	IP_ADDR4(&DestIPaddr, 192, 168, 20, 5);  //Server Side IP address
+
 	err = udp_connect(upcb, &DestIPaddr, 12345);
 
 	if (err == HAL_OK)
@@ -705,8 +689,16 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	pbuf_free(p);
 
 	velocity_val = drive_vals[0];
-	//steer_val = drive_vals[1];
+	steer_val = drive_vals[1];
 	heading_error = drive_vals[2]; //Receive Heading Error
+	object_distance[0] = drive_vals[3];
+	object_distance[1] = drive_vals[4];
+	object_distance[2] = drive_vals[5];
+	object_distance[3] = drive_vals[6];
+	object_distance[4] = drive_vals[7];
+
+	auto_mode = (int)drive_vals[8];
+	obstacle_flag = (int)drive_vals[9];
 
 	//Might need to reset drive_vals to 0
 	// Set Steering Angle for Servo
