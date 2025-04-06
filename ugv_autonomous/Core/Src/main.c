@@ -81,6 +81,9 @@ float steer_val = 0;
 float velocity_val = 0; // motor speed command in 0.0-1.0
 float heading_error = 0;
 
+kinematic kin;
+position pos;
+
 extern struct netif gnetif;
 struct udp_pcb *upcb;
 char buffer[100];
@@ -219,6 +222,11 @@ int main(void)
 
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
+
+	// kinematics
+	kin.L = 18; // wheel distance from front to rear in inches
+	kin.steering_angle = 0;
+	kin.velocity = 0;
 
   udp_client_connect();
 
@@ -655,11 +663,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	velocity = encoder(enc); // calculate the velocity using the encoder values
 
 	//PID
-	PID_value = PID_controller_1(velocity_set, velocity, P, I, D, velocity_max);
+	PID_value = PID_controller_1(abs(velocity_set), velocity, P, I, D, velocity_max);
 
 	//motor driver
-	velocity_val = PID_value / velocity_max; // calculate the percentage of the velocity
+	if(velocity_set >= 0)
+	{
+		velocity_val = PID_value / velocity_max; // calculate the percentage of the velocity
+	}
+	else
+	{
+		velocity_val = (PID_value / velocity_max) * -1.0; // calculate the percentage of the velocity
+	}
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+
+	// kinematics
+	kin.velocity = velocity;				//assigns the velocity value to the kinematics struct
+	kin.steering_angle = heading_error;		//assigns the steering value to the kinematics struct
+
+	dead_reckoning(&kin, &pos, 0.025);		//calculates and returns the position values of dead reckoning
 
 	// Timer callback meant to send data from stm -> Rpi in a periodic manner
 

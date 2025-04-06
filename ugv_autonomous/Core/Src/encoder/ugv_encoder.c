@@ -27,13 +27,18 @@ float encoder(uint32_t e)
 	prev_encoder_value = encoder_value;
 	encoder_value = e;
 
-	if(encoder_value >= prev_encoder_value)
+
+	if((int)(encoder_value - prev_encoder_value) > 60000)
 	{
-		delta_encoder_value = encoder_value - prev_encoder_value;
+		delta_encoder_value = (65536 - encoder_value) + prev_encoder_value;
+	}
+	else if((int)(encoder_value - prev_encoder_value) < (-60000))
+	{
+		delta_encoder_value = encoder_value - (prev_encoder_value - 65536);  // to handle the overflowed of a 2^16 bit variable
 	}
 	else
 	{
-		delta_encoder_value = encoder_value - (prev_encoder_value - 65536);  // to handle the overflowed of a 2^16 bit variable
+		delta_encoder_value = abs(encoder_value - prev_encoder_value);
 	}
 
 	wheel_rpm = (delta_encoder_value / enc_counts) * time; //encoder / encoder counts/rotation * 1min/25ms
