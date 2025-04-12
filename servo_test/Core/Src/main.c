@@ -49,6 +49,7 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 ugvServo_t steeringServo;
+float steer_val = 0;
 
 
 /* USER CODE END PV */
@@ -103,38 +104,24 @@ int main(void)
     steeringServo.timerInstance = &htim10;
     steeringServo.timerCCRX = &TIM10->CCR1;
     steeringServo.timerCh = TIM_CHANNEL_1;
-
-    /* Last Year's Steering Servo */
-    /*
-    steeringServo.timerARR = 59999;
-    steeringServo.minPulse = 500;
-    steeringServo.maxPulse = 2500;
-    steeringServo.timerPeriod = 20000;
-    steeringServo.travelAngle = 270.0;
-	steeringServo.minLimit = 10.0;
-	steeringServo.maxLimit = 260.0;
-//	steeringServo.travelOffset = 125.0;
-//	steeringServo.travelOffset = 50;
-	steeringServo.travelOffset = 10;
-	*/
-
-    /* HS-985MG Servo */
     steeringServo.timerARR = 60000;
     steeringServo.minPulse = 500;
-    //steeringServo.maxPulse = 2500;
     steeringServo.maxPulse = 2700;
     steeringServo.timerPeriod = 20000;
     steeringServo.travelAngle = 360.0;
 //	steeringServo.minLimit = 1;
 //	steeringServo.maxLimit = 270.0;
 
-	steeringServo.minLimit = 0;
-	steeringServo.maxLimit = 360.0;
-	steeringServo.travelOffset = 0;
+//	steeringServo.minLimit = 0;
+//	steeringServo.maxLimit = 360.0;
+//	steeringServo.travelOffset = 50;
 
+	steeringServo.minLimit = 20.0;
+	steeringServo.maxLimit = 105.0;
+	steeringServo.travelOffset = 30;
 	ugv_servoInitServo(&steeringServo);
 
-	float steer_val = 200;
+	steer_val = 100;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -142,7 +129,6 @@ int main(void)
   while (1)
   {
 	  ugv_servoSetAngle(&steeringServo, steer_val);
-
 
     /* USER CODE END WHILE */
 
