@@ -10,8 +10,8 @@
 #include "ugv_encoder.h"
 
 
-		float wheel_diameter = 5; //wheel diameter in inch
-		float enc_counts = 659.232; //encoder counts/rotation
+		float wheel_diameter = 5.255; //wheel diameter in inch
+		float enc_counts = 684.69; //encoder counts/rotation (old value 659.232)
 		float time = 2400; //1min/25ms
 
 float encoder(uint32_t e)

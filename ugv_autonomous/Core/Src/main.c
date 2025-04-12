@@ -224,7 +224,7 @@ int main(void)
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
 
 	// kinematics
-	kin.L = 18; // wheel distance from front to rear in inches
+	kin.L = 17; // wheel distance from front to rear in inches
 	kin.steering_angle = 0;
 	kin.velocity = 0;
 
@@ -660,7 +660,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 
 	// encoder
-	velocity = encoder(enc); // calculate the velocity using the encoder values
+	velocity = encoder(enc); // calculate the velocity in Mph using the encoder values
 
 	//PID
 	PID_value = PID_controller_1(abs(velocity_set), velocity, P, I, D, velocity_max);

@@ -33,6 +33,6 @@ typedef struct{
 
 extern position pos;
 
-dead_reckoning(kinematic *k, position *p, float t);
+void dead_reckoning(kinematic *k, position *p, float t);
 
 #endif
