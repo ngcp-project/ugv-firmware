@@ -645,8 +645,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
-
-
 }
 
 void udp_client_connect()
@@ -736,9 +734,7 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 		buffer_data = strtok(NULL, ",");
 	}
 
-
-
-	// Free recieve pbuf;
+	// Free receive pbuf;
 	pbuf_free(p);
 
 	velocity_val = drive_vals[0];
