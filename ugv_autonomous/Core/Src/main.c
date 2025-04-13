@@ -209,15 +209,15 @@ int main(void)
 	  steeringServo.timerCCRX = &TIM10->CCR1;
 	  steeringServo.timerCh = TIM_CHANNEL_1;
 	  steeringServo.timerARR = htim10.Init.Period;
-	  steeringServo.minPulse = 500;
-	  steeringServo.maxPulse = 2500;
-	  steeringServo.timerPeriod = 20000;
-	  steeringServo.travelAngle = 270.0;
+	  steeringServo.minPulse = 1500;
+	  steeringServo.maxPulse = 3000;
+	  steeringServo.timerPeriod = 30000;
+	  steeringServo.travelAngle = 105.0;
 
 	  steeringServo.minLimit = 0.0;
 	  steeringServo.maxLimit = 105.0;
 
-	  steeringServo.travelOffset = 50;
+	  steeringServo.travelOffset = 52;
 
 
 	ugv_servoInitServo(&steeringServo);
@@ -655,9 +655,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
 
 	static const float Kp_heading = 1.5;  //Kp value for heading controller
+	static const float Ki_heading = 0.15;
+	static const float time_step = 0.025;
 
-	steer_val =  Kp_heading * heading_error;
-	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+	static float integral_term = 0;
+
+	/*integral_term += heading_error * time_step;
+
+	if(integral_term > steeringServo.maxLimit)
+	{
+		integral_term = steeringServo.maxLimit;
+	}
+	if(integral_term < steeringServo.minLimit)
+	{
+		integral_term = steeringServo.minLimit;
+	}*/
+
+	steer_val =  Kp_heading * heading_error + Ki_heading * integral_term;
+	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit * steer_val);
 
 	// encoder
 	velocity = encoder(enc); // calculate the velocity in Mph using the encoder values
@@ -678,7 +693,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	// kinematics
 	kin.velocity = velocity;				//assigns the velocity value to the kinematics struct
-	kin.steering_angle = heading_error;		//assigns the steering value to the kinematics struct
+	kin.steering_angle = heading_error * 100;		//assigns the steering value to the kinematics struct
 
 	dead_reckoning(&kin, &pos, 0.025);		//calculates and returns the position values of dead reckoning
 
