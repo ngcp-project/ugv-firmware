@@ -712,6 +712,8 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	velocity_val = drive_vals[0];
 	steer_val = drive_vals[1];
 
+	/* NEED TO DIVIDE HEADING ERROR BY 100 TO RESCALE VALUE */
+
 	//Might need to reset drive_vals to 0
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	memset(buffer, '0', sizeof(buffer));

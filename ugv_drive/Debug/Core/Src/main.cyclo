@@ -13,5 +13,5 @@
 ../Core/Src/main.c:636:6:udp_client_connect	2
 ../Core/Src/main.c:663:13:udp_client_send	2
 ../Core/Src/main.c:686:6:udp_receive_callback	4
-../Core/Src/main.c:730:6:MPU_Config	1
-../Core/Src/main.c:761:6:Error_Handler	1
+../Core/Src/main.c:724:6:MPU_Config	1
+../Core/Src/main.c:755:6:Error_Handler	1

@@ -77,7 +77,6 @@ float steer_val = 0;
 float velocity_val = 0;
 float heading_error = 0;
 
-
 // Temporary vars for Payload Arm Control
 int8_t arm_cmds[5];
 
@@ -165,51 +164,29 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
-  // 2022 Servo Driver
+	// 2022 Servo Driver
 	steeringServo.timerInstance = &htim10;
 	steeringServo.timerCCRX = &TIM10->CCR1;
 	steeringServo.timerCh = TIM_CHANNEL_1;
-
-	/* Last Year's Steering Servo */
-	/*
-	steeringServo.timerARR = 59999;
+	steeringServo.timerARR = htim10.Init.Period;
 	steeringServo.minPulse = 500;
 	steeringServo.maxPulse = 2500;
 	steeringServo.timerPeriod = 20000;
 	steeringServo.travelAngle = 270.0;
-	steeringServo.minLimit = 10.0;
-	steeringServo.maxLimit = 260.0;
-	//	steeringServo.travelOffset = 125.0;
-	//	steeringServo.travelOffset = 50;
-	steeringServo.travelOffset = 10;
-	*/
 
-	// 2022 Servo Driver
-	  steeringServo.timerInstance = &htim10;
-	  steeringServo.timerCCRX = &TIM10->CCR1;
-	  steeringServo.timerCh = TIM_CHANNEL_1;
-	  steeringServo.timerARR = htim10.Init.Period;
-	  steeringServo.minPulse = 500;
-	  steeringServo.maxPulse = 2500;
-	  steeringServo.timerPeriod = 20000;
-	  steeringServo.travelAngle = 270.0;
-
-	  steeringServo.minLimit = 0.0;
-	  steeringServo.maxLimit = 105.0;
-
-	  steeringServo.travelOffset = 50;
+	steeringServo.minLimit = 0.0;
+	steeringServo.maxLimit = 105.0;
+	steeringServo.travelOffset = 50;
 
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
 	ugv_init_F7_Master(&F7_i2c_master, &hi2c1, I2C_BUFF_SIZE, F3_SLAVE_ADDRESS, L4_SLAVE_ADDRESS);
 
+	udp_client_connect();
 
-  udp_client_connect();
-
-  /* Start HAL timer interrupt
-  /  Interrupt occurs once every 50ms
+  /*
+   * Start HAL timer interrupt. Interrupt occurs once every 25ms
   */
-  //COMMENTED OUT TIMER UPDATE
   HAL_TIM_Base_Start_IT(&htim13);
 
 
@@ -647,42 +624,39 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 }
 
+/*
+ * The function creates a udp protocol control block
+ * Creates a structure that contains an IPv4 address of the nucleo
+ * Binds the protocol control block to the ip address and port of the nucleo
+ * Creates the IP address of the device that the nucleo will be communicating with
+ * Connects the udp protocol control block to the remote ip address
+ * Checks if udp_connect() is successful
+ */
+
 void udp_client_connect()
 {
 	err_t err;
+	const uint16_t DRIVE_STM_PORT = 8;
+	const uint16_t JETSON_PORT = 12345;
 
-	// Create a new UDP control block
-	// Need to check for null return
-	upcb = udp_new();
+	upcb = udp_new(); 	// Create a new UDP control block. Need to check for NULL return
 
-	// Bind control block to module's IP address and port
-	// Static IP address: 192.168.2.xxx
 	ip_addr_t my_ip;
-//	IP_ADDR4(&my_ip, 192, 168, 5, 21); 	//STM ip when connected to RPI 5
-	IP_ADDR4(&my_ip, 192, 168, 20, 21); //STM ip when connected to Jetson Orin
-//	IP_ADDR4(&my_ip, 192, 168, 2, 21); 	// STM ip when connected to linux desktop
-
-	// Binds udp protocol control block to a local IP address
-	// Arbitrary port # selection: 8
-	udp_bind(upcb, &my_ip, 8);
-
+	IP_ADDR4(&my_ip, 192, 168, 20, 21); //Drive stm ip address
+	udp_bind(upcb, &my_ip, DRIVE_STM_PORT);
 
 	// Configure destination IP address
-	// Host ip address: 192.168.2.5
+	// Host ip address: 192.168.20.5
 	// Arbitrary port # selection: 12345
 	ip_addr_t DestIPaddr;
-//	IP_ADDR4(&DestIPaddr, 192, 168, 5, 5);  //RPI 5 host ip address
 	IP_ADDR4(&DestIPaddr, 192, 168, 20, 5);  //Jetson Orin Nano host ip address
-//	IP_ADDR4(&DestIPaddr, 192, 168, 2, 5);  //Desktop Host ip address
-	err = udp_connect(upcb, &DestIPaddr, 12345);
+	err = udp_connect(upcb, &DestIPaddr, JETSON_PORT);
 
 	if (err == HAL_OK)
 	{
 		// Blue LED
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);
-		// Set a receive callback for the upcb when server sends data to client
 		udp_recv(upcb, udp_receive_callback, NULL);
-
 	}
 }
 
@@ -741,17 +715,12 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	steer_val = drive_vals[1];
 
 	//Temporary addition for payload arm acutation
-	arm_cmds[0] = (int8_t)drive_vals[2];
-	arm_cmds[1] = (int8_t)drive_vals[3];
-	//heading_error = drive_vals[2]; //Receive Heading Error
+//	arm_cmds[0] = (int8_t)drive_vals[2];
+//	arm_cmds[1] = (int8_t)drive_vals[3];
 
 	//Might need to reset drive_vals to 0
-	// Set Steering Angle for Servo
-//	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
-//	//ugv_servoSetAngle(&steeringServo, drive_vals[1]);
-//	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
-//	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	memset(buffer, '0', sizeof(buffer));
 }
 
 /* USER CODE END 4 */

@@ -2282,7 +2282,7 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
  800129c:	eeb0 7b40 	vmov.f64	d7, d0
  80012a0:	eef7 7bc7 	vcvt.f32.f64	s15, d7
  80012a4:	edc7 7a0f 	vstr	s15, [r7, #60]	; 0x3c
-		//Make data was converted properly
+		//Make sure data was converted properly
 		if (conv_check == 0)
  80012a8:	edd7 7a0f 	vldr	s15, [r7, #60]	; 0x3c
  80012ac:	eef5 7a40 	vcmp.f32	s15, #0.0
@@ -2303,7 +2303,6 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
  80012ca:	3b34      	subs	r3, #52	; 0x34
  80012cc:	6bfa      	ldr	r2, [r7, #60]	; 0x3c
  80012ce:	601a      	str	r2, [r3, #0]
-
 		++data_index;
  80012d0:	f897 3047 	ldrb.w	r3, [r7, #71]	; 0x47
  80012d4:	3301      	adds	r3, #1
@@ -2322,11 +2321,10 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
  80012f0:	d9d1      	bls.n	8001296 <udp_receive_callback+0x3e>
 	}
 
-	// Free receive pbuf;
+	// Free receive packet buffer;
 	pbuf_free(p);
  80012f2:	6878      	ldr	r0, [r7, #4]
  80012f4:	f008 fc0c 	bl	8009b10 <pbuf_free>
-
 	velocity_val = drive_vals[0];
  80012f8:	697b      	ldr	r3, [r7, #20]
  80012fa:	4a0c      	ldr	r2, [pc, #48]	; (800132c <udp_receive_callback+0xd4>)
@@ -2335,9 +2333,6 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
  80012fe:	69bb      	ldr	r3, [r7, #24]
  8001300:	4a0b      	ldr	r2, [pc, #44]	; (8001330 <udp_receive_callback+0xd8>)
  8001302:	6013      	str	r3, [r2, #0]
-	//Temporary addition for payload arm acutation
-//	arm_cmds[0] = (int8_t)drive_vals[2];
-//	arm_cmds[1] = (int8_t)drive_vals[3];
 
 	//Might need to reset drive_vals to 0
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
