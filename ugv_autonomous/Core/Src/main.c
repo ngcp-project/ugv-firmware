@@ -90,7 +90,7 @@ extern struct netif gnetif;
 struct udp_pcb *upcb;
 char buffer[100];
 int counter;
-
+float integral_term = 0;
 
 /* USER CODE END PV */
 
@@ -168,9 +168,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // 2022 Servo Driver
-	steeringServo.timerInstance = &htim10;
-	steeringServo.timerCCRX = &TIM10->CCR1;
-	steeringServo.timerCh = TIM_CHANNEL_1;
+//	steeringServo.timerInstance = &htim10;
+//	steeringServo.timerCCRX = &TIM10->CCR1;
+//	steeringServo.timerCh = TIM_CHANNEL_1;
 
 	steeringServo.timerInstance = &htim10;
 	steeringServo.timerCCRX = &TIM10->CCR1;
@@ -181,10 +181,13 @@ int main(void)
 	steeringServo.timerPeriod = 20000;
 	steeringServo.travelAngle = 270.0;
 
-	steeringServo.minLimit = 0.0;
-	steeringServo.maxLimit = 105.0;
+	//steeringServo.minLimit = 0.0;
+	steeringServo.minLimit = 20.0;
+	//steeringServo.maxLimit = 105.0;
+	steeringServo.maxLimit = 120.0;
 
-	steeringServo.travelOffset = 50;
+	//steeringServo.travelOffset = 50; //Original offset in file
+	steeringServo.travelOffset = 73.52;
 
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
@@ -568,15 +571,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	static const float Kp_heading = 1.5;  //Kp value for heading controller
 	static const float time_step = 0.025;
 
-	static float integral_term = 0;
+	//static float integral_term = 0;
 
 
 	integral_term += heading_error * time_step;
 
-	if (integral_term > steeringServo.maxLimit)
-		integral_term = steeringServo.maxLimit;
-	if (integral_term < steeringServo.minLimit)
-		integral_term = steeringServo.minLimit;
+	// Need to adjust saturation limits
+	if (integral_term > (steeringServo.maxLimit - steeringServo.minLimit))
+		integral_term = (float)(steeringServo.maxLimit - steeringServo.minLimit);
+	if (integral_term <  (-1.0) * (steeringServo.maxLimit - steeringServo.minLimit))
+		integral_term = (-1.0) * (steeringServo.maxLimit - steeringServo.minLimit);
 
 
 	// Add logic to account for detecting objects to the left and right
@@ -590,9 +594,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	else
 	{
 		steer_val =  Kp_heading * heading_error + Ki_heading * integral_term;  //Implementation of a PI controller
+		//steer_val =  Kp_heading * heading_error;
 	}
 
-	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+	//ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
+	//ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val);
+	ugv_servoSetAngle(&steeringServo, steer_val);
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 
 	// Timer callback meant to send data from stm -> Rpi in a periodic manner
