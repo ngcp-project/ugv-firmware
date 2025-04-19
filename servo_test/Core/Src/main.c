@@ -104,7 +104,7 @@ int main(void)
     steeringServo.timerInstance = &htim10;
     steeringServo.timerCCRX = &TIM10->CCR1;
     steeringServo.timerCh = TIM_CHANNEL_1;
-    steeringServo.timerARR = 60000;
+    steeringServo.timerARR = 59999;
     steeringServo.minPulse = 500;
     steeringServo.maxPulse = 2700;
     steeringServo.timerPeriod = 20000;
@@ -116,12 +116,12 @@ int main(void)
 //	steeringServo.maxLimit = 360.0;
 //	steeringServo.travelOffset = 50;
 
-	steeringServo.minLimit = 20.0;
-	steeringServo.maxLimit = 105.0;
-	steeringServo.travelOffset = 30;
+	steeringServo.minLimit = 0;
+	steeringServo.maxLimit = 200.0;
+	steeringServo.travelOffset = 50;
 	ugv_servoInitServo(&steeringServo);
 
-	steer_val = 100;
+	//steer_val = 100;
   /* USER CODE END 2 */
 
   /* Infinite loop */

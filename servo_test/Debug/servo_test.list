@@ -21,31 +21,31 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
   8 .data         0000000c  20000000  08003cd4  00020000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          00000128  2000000c  08003ce0  0002000c  2**2
+  9 .bss          0000012c  2000000c  08003ce0  0002000c  2**2
                   ALLOC
- 10 ._user_heap_stack 00000604  20000134  08003ce0  00020134  2**0
+ 10 ._user_heap_stack 00000600  20000138  08003ce0  00020138  2**0
                   ALLOC
  11 .ARM.attributes 0000002e  00000000  00000000  0002000c  2**0
                   CONTENTS, READONLY
  12 .comment      00000043  00000000  00000000  0002003a  2**0
                   CONTENTS, READONLY
- 13 .debug_info   0000d402  00000000  00000000  0002007d  2**0
+ 13 .debug_info   0000d3ff  00000000  00000000  0002007d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_abbrev 00001abb  00000000  00000000  0002d47f  2**0
+ 14 .debug_abbrev 00001ab9  00000000  00000000  0002d47c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_aranges 00000b60  00000000  00000000  0002ef40  2**3
+ 15 .debug_aranges 00000b60  00000000  00000000  0002ef38  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_rnglists 000008e2  00000000  00000000  0002faa0  2**0
+ 16 .debug_rnglists 000008e2  00000000  00000000  0002fa98  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  00026f84  00000000  00000000  00030382  2**0
+ 17 .debug_macro  00026f84  00000000  00000000  0003037a  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   0000dc73  00000000  00000000  00057306  2**0
+ 18 .debug_line   0000dc70  00000000  00000000  000572fe  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    000f77cb  00000000  00000000  00064f79  2**0
+ 19 .debug_str    000f77cb  00000000  00000000  00064f6e  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .debug_frame  00002f58  00000000  00000000  0015c744  2**2
+ 20 .debug_frame  00002f54  00000000  00000000  0015c73c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 00000066  00000000  00000000  0015f69c  2**0
+ 21 .debug_line_str 00000066  00000000  00000000  0015f690  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -359,108 +359,99 @@ Disassembly of section .text:
 int main(void)
 {
  8000534:	b580      	push	{r7, lr}
- 8000536:	b082      	sub	sp, #8
- 8000538:	af00      	add	r7, sp, #0
+ 8000536:	af00      	add	r7, sp, #0
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
- 800053a:	f000 fb82 	bl	8000c42 <HAL_Init>
+ 8000538:	f000 fb83 	bl	8000c42 <HAL_Init>
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
- 800053e:	f000 f849 	bl	80005d4 <SystemClock_Config>
+ 800053c:	f000 f84a 	bl	80005d4 <SystemClock_Config>
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
- 8000542:	f000 f933 	bl	80007ac <MX_GPIO_Init>
+ 8000540:	f000 f934 	bl	80007ac <MX_GPIO_Init>
   MX_TIM10_Init();
- 8000546:	f000 f8b3 	bl	80006b0 <MX_TIM10_Init>
+ 8000544:	f000 f8b4 	bl	80006b0 <MX_TIM10_Init>
   MX_USART3_UART_Init();
- 800054a:	f000 f8ff 	bl	800074c <MX_USART3_UART_Init>
+ 8000548:	f000 f900 	bl	800074c <MX_USART3_UART_Init>
   /* USER CODE BEGIN 2 */
 
   // 2022 Servo Driver
     steeringServo.timerInstance = &htim10;
- 800054e:	4b17      	ldr	r3, [pc, #92]	; (80005ac <main+0x78>)
- 8000550:	4a17      	ldr	r2, [pc, #92]	; (80005b0 <main+0x7c>)
- 8000552:	601a      	str	r2, [r3, #0]
+ 800054c:	4b17      	ldr	r3, [pc, #92]	; (80005ac <main+0x78>)
+ 800054e:	4a18      	ldr	r2, [pc, #96]	; (80005b0 <main+0x7c>)
+ 8000550:	601a      	str	r2, [r3, #0]
     steeringServo.timerCCRX = &TIM10->CCR1;
- 8000554:	4b15      	ldr	r3, [pc, #84]	; (80005ac <main+0x78>)
- 8000556:	4a17      	ldr	r2, [pc, #92]	; (80005b4 <main+0x80>)
- 8000558:	605a      	str	r2, [r3, #4]
+ 8000552:	4b16      	ldr	r3, [pc, #88]	; (80005ac <main+0x78>)
+ 8000554:	4a17      	ldr	r2, [pc, #92]	; (80005b4 <main+0x80>)
+ 8000556:	605a      	str	r2, [r3, #4]
     steeringServo.timerCh = TIM_CHANNEL_1;
- 800055a:	4b14      	ldr	r3, [pc, #80]	; (80005ac <main+0x78>)
- 800055c:	2200      	movs	r2, #0
- 800055e:	811a      	strh	r2, [r3, #8]
-//	steeringServo.travelOffset = 50;
-	steeringServo.travelOffset = 10;
-	*/
-
-    /* HS-985MG Servo */
-    steeringServo.timerARR = 60000;
- 8000560:	4b12      	ldr	r3, [pc, #72]	; (80005ac <main+0x78>)
- 8000562:	f64e 2260 	movw	r2, #60000	; 0xea60
- 8000566:	815a      	strh	r2, [r3, #10]
+ 8000558:	4b14      	ldr	r3, [pc, #80]	; (80005ac <main+0x78>)
+ 800055a:	2200      	movs	r2, #0
+ 800055c:	811a      	strh	r2, [r3, #8]
+    steeringServo.timerARR = 59999;
+ 800055e:	4b13      	ldr	r3, [pc, #76]	; (80005ac <main+0x78>)
+ 8000560:	f64e 225f 	movw	r2, #59999	; 0xea5f
+ 8000564:	815a      	strh	r2, [r3, #10]
     steeringServo.minPulse = 500;
- 8000568:	4b10      	ldr	r3, [pc, #64]	; (80005ac <main+0x78>)
- 800056a:	4a13      	ldr	r2, [pc, #76]	; (80005b8 <main+0x84>)
- 800056c:	60da      	str	r2, [r3, #12]
-    //steeringServo.maxPulse = 2500;
+ 8000566:	4b11      	ldr	r3, [pc, #68]	; (80005ac <main+0x78>)
+ 8000568:	4a13      	ldr	r2, [pc, #76]	; (80005b8 <main+0x84>)
+ 800056a:	60da      	str	r2, [r3, #12]
     steeringServo.maxPulse = 2700;
- 800056e:	4b0f      	ldr	r3, [pc, #60]	; (80005ac <main+0x78>)
- 8000570:	4a12      	ldr	r2, [pc, #72]	; (80005bc <main+0x88>)
- 8000572:	611a      	str	r2, [r3, #16]
+ 800056c:	4b0f      	ldr	r3, [pc, #60]	; (80005ac <main+0x78>)
+ 800056e:	4a13      	ldr	r2, [pc, #76]	; (80005bc <main+0x88>)
+ 8000570:	611a      	str	r2, [r3, #16]
     steeringServo.timerPeriod = 20000;
- 8000574:	4b0d      	ldr	r3, [pc, #52]	; (80005ac <main+0x78>)
- 8000576:	4a12      	ldr	r2, [pc, #72]	; (80005c0 <main+0x8c>)
- 8000578:	615a      	str	r2, [r3, #20]
+ 8000572:	4b0e      	ldr	r3, [pc, #56]	; (80005ac <main+0x78>)
+ 8000574:	4a12      	ldr	r2, [pc, #72]	; (80005c0 <main+0x8c>)
+ 8000576:	615a      	str	r2, [r3, #20]
     steeringServo.travelAngle = 360.0;
- 800057a:	4b0c      	ldr	r3, [pc, #48]	; (80005ac <main+0x78>)
- 800057c:	4a11      	ldr	r2, [pc, #68]	; (80005c4 <main+0x90>)
- 800057e:	625a      	str	r2, [r3, #36]	; 0x24
+ 8000578:	4b0c      	ldr	r3, [pc, #48]	; (80005ac <main+0x78>)
+ 800057a:	4a12      	ldr	r2, [pc, #72]	; (80005c4 <main+0x90>)
+ 800057c:	625a      	str	r2, [r3, #36]	; 0x24
 
 //	steeringServo.minLimit = 0;
 //	steeringServo.maxLimit = 360.0;
 //	steeringServo.travelOffset = 50;
 
-	steeringServo.minLimit = 20.0;
- 8000580:	4b0a      	ldr	r3, [pc, #40]	; (80005ac <main+0x78>)
- 8000582:	4a11      	ldr	r2, [pc, #68]	; (80005c8 <main+0x94>)
+	steeringServo.minLimit = 0;
+ 800057e:	4b0b      	ldr	r3, [pc, #44]	; (80005ac <main+0x78>)
+ 8000580:	f04f 0200 	mov.w	r2, #0
  8000584:	62da      	str	r2, [r3, #44]	; 0x2c
-	steeringServo.maxLimit = 105.0;
+	steeringServo.maxLimit = 200.0;
  8000586:	4b09      	ldr	r3, [pc, #36]	; (80005ac <main+0x78>)
- 8000588:	4a10      	ldr	r2, [pc, #64]	; (80005cc <main+0x98>)
+ 8000588:	4a0f      	ldr	r2, [pc, #60]	; (80005c8 <main+0x94>)
  800058a:	631a      	str	r2, [r3, #48]	; 0x30
-	steeringServo.travelOffset = 0;
+	steeringServo.travelOffset = 50;
  800058c:	4b07      	ldr	r3, [pc, #28]	; (80005ac <main+0x78>)
- 800058e:	f04f 0200 	mov.w	r2, #0
- 8000592:	629a      	str	r2, [r3, #40]	; 0x28
+ 800058e:	4a0f      	ldr	r2, [pc, #60]	; (80005cc <main+0x98>)
+ 8000590:	629a      	str	r2, [r3, #40]	; 0x28
 	ugv_servoInitServo(&steeringServo);
- 8000594:	4805      	ldr	r0, [pc, #20]	; (80005ac <main+0x78>)
- 8000596:	f003 fa6a 	bl	8003a6e <ugv_servoInitServo>
-
-	float steer_val = 100;
- 800059a:	4b0d      	ldr	r3, [pc, #52]	; (80005d0 <main+0x9c>)
- 800059c:	607b      	str	r3, [r7, #4]
+ 8000592:	4806      	ldr	r0, [pc, #24]	; (80005ac <main+0x78>)
+ 8000594:	f003 fa6b 	bl	8003a6e <ugv_servoInitServo>
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 	  ugv_servoSetAngle(&steeringServo, steer_val);
- 800059e:	ed97 0a01 	vldr	s0, [r7, #4]
+ 8000598:	4b0d      	ldr	r3, [pc, #52]	; (80005d0 <main+0x9c>)
+ 800059a:	edd3 7a00 	vldr	s15, [r3]
+ 800059e:	eeb0 0a67 	vmov.f32	s0, s15
  80005a2:	4802      	ldr	r0, [pc, #8]	; (80005ac <main+0x78>)
  80005a4:	f003 faa7 	bl	8003af6 <ugv_servoSetAngle>
- 80005a8:	e7f9      	b.n	800059e <main+0x6a>
+ 80005a8:	e7f6      	b.n	8000598 <main+0x64>
  80005aa:	bf00      	nop
  80005ac:	200000fc 	.word	0x200000fc
  80005b0:	20000028 	.word	0x20000028
@@ -469,9 +460,9 @@ int main(void)
  80005bc:	4528c000 	.word	0x4528c000
  80005c0:	469c4000 	.word	0x469c4000
  80005c4:	43b40000 	.word	0x43b40000
- 80005c8:	41a00000 	.word	0x41a00000
- 80005cc:	42d20000 	.word	0x42d20000
- 80005d0:	42c80000 	.word	0x42c80000
+ 80005c8:	43480000 	.word	0x43480000
+ 80005cc:	42480000 	.word	0x42480000
+ 80005d0:	20000130 	.word	0x20000130
 
 080005d4 <SystemClock_Config>:
 /**
@@ -1713,7 +1704,7 @@ LoopFillZerobss:
   ldr r2, =_sbss
  8000c38:	2000000c 	.word	0x2000000c
   ldr r4, =_ebss
- 8000c3c:	20000134 	.word	0x20000134
+ 8000c3c:	20000138 	.word	0x20000138
 
 08000c40 <ADC_IRQHandler>:
  * @retval None       
@@ -1849,7 +1840,7 @@ __weak void HAL_IncTick(void)
  8000cd8:	4770      	bx	lr
  8000cda:	bf00      	nop
  8000cdc:	20000008 	.word	0x20000008
- 8000ce0:	20000130 	.word	0x20000130
+ 8000ce0:	20000134 	.word	0x20000134
 
 08000ce4 <HAL_GetTick>:
   * @note This function is declared as __weak to be overwritten in case of other 
@@ -1869,7 +1860,7 @@ __weak uint32_t HAL_GetTick(void)
  8000cf0:	f85d 7b04 	ldr.w	r7, [sp], #4
  8000cf4:	4770      	bx	lr
  8000cf6:	bf00      	nop
- 8000cf8:	20000130 	.word	0x20000130
+ 8000cf8:	20000134 	.word	0x20000134
 
 08000cfc <__NVIC_SetPriorityGrouping>:
            In case of a conflict between priority grouping and available
