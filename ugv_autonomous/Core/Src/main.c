@@ -181,13 +181,15 @@ int main(void)
 	steeringServo.timerPeriod = 20000;
 	steeringServo.travelAngle = 270.0;
 
-	//steeringServo.minLimit = 0.0;
-	steeringServo.minLimit = 20.0;
-	//steeringServo.maxLimit = 105.0;
-	steeringServo.maxLimit = 120.0;
+	steeringServo.minLimit = 0.0;
+	//steeringServo.minLimit = 20.0;
+	steeringServo.maxLimit = 105.0;
+	//steeringServo.maxLimit = 120.0;
 
 	//steeringServo.travelOffset = 50; //Original offset in file
-	steeringServo.travelOffset = 73.52;
+	//steeringServo.travelOffset = 73.52;  // Does not work for this year's ugv
+	steeringServo.travelOffset = 50;
+
 
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
@@ -568,14 +570,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
 
 	static const float Ki_heading = 0.15; //Ki value for heading controller
-	static const float Kp_heading = 1.5;  //Kp value for heading controller
+	static const float Kp_heading = 2;  //Kp value for heading controller
 	static const float time_step = 0.025;
 
 	//static float integral_term = 0;
 
 
 	integral_term += heading_error * time_step;
-
+	//integral_term += heading_error;
 	// Need to adjust saturation limits
 	if (integral_term > (steeringServo.maxLimit - steeringServo.minLimit))
 		integral_term = (float)(steeringServo.maxLimit - steeringServo.minLimit);
@@ -599,8 +601,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	//ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	//ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val);
+	steer_val *= (-1.0);
 	ugv_servoSetAngle(&steeringServo, steer_val);
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+//	steer_val = 0;
+//	velocity_val = 0;
 
 	// Timer callback meant to send data from stm -> Rpi in a periodic manner
 
@@ -714,6 +719,7 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 //	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	memset(buffer, '0', sizeof(buffer));
 }
 
 /* USER CODE END 4 */
