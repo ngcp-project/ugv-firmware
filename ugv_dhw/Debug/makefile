@@ -78,34 +78,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := ugv_manual
+BUILD_ARTIFACT_NAME := ugv_dhw
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-ugv_manual.elf \
+ugv_dhw.elf \
 
 MAP_FILES += \
-ugv_manual.map \
+ugv_dhw.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-ugv_manual.list \
+ugv_dhw.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: ugv_manual.elf secondary-outputs
+main-build: ugv_dhw.elf secondary-outputs
 
 # Tool invocations
-ugv_manual.elf ugv_manual.map: $(OBJS) $(USER_OBJS) /home/chris/NGCP/NGCP_24_25/ugv-firmware/ugv_manual/STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "ugv_manual.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/chris/NGCP/NGCP_24_25/ugv-firmware/ugv_manual/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ugv_manual.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+ugv_dhw.elf ugv_dhw.map: $(OBJS) $(USER_OBJS) /home/chris/NGCP/NGCP_24_25/ugv-firmware/ugv_dhw/STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "ugv_dhw.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/chris/NGCP/NGCP_24_25/ugv-firmware/ugv_dhw/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ugv_dhw.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -114,14 +114,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-ugv_manual.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "ugv_manual.list"
+ugv_dhw.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "ugv_dhw.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) default.size.stdout ugv_manual.elf ugv_manual.list ugv_manual.map
+	-$(RM) default.size.stdout ugv_dhw.elf ugv_dhw.list ugv_dhw.map
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

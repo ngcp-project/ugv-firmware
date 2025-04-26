@@ -45,6 +45,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define MAX_DUTY 32767
+#define TIM_3_4_ARR   (199)
 
 /* USER CODE END PD */
 
@@ -59,6 +60,8 @@ I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim10;
 TIM_HandleTypeDef htim13;
 
@@ -71,6 +74,7 @@ F7_I2C_Master F7_i2c_master;
 
 // instantiate steering servo struct
 ugvServo_t steeringServo;
+ugvServo_t steeringServo1;
 MotorControl ugv_drive_mtr;
 // Variable to control steering angle
 float steer_val = 0;
@@ -99,6 +103,8 @@ static void MX_USART3_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM13_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM3_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
@@ -162,6 +168,8 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM13_Init();
   MX_I2C1_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
 	// 2022 Servo Driver
@@ -182,6 +190,33 @@ int main(void)
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
 	ugv_init_F7_Master(&F7_i2c_master, &hi2c1, I2C_BUFF_SIZE, F3_SLAVE_ADDRESS, L4_SLAVE_ADDRESS);
 
+	// 2022 Servo Driver
+	steeringServo1.timerInstance = &htim3;
+	steeringServo1.timerCCRX = &TIM3->CCR1;
+	steeringServo1.timerCh = TIM_CHANNEL_1;
+	steeringServo1.timerARR = htim3.Init.Period;
+	steeringServo1.minPulse = 500;
+	steeringServo1.maxPulse = 2500;
+	steeringServo1.timerPeriod = 20000;
+	steeringServo1.travelAngle = 270.0;
+
+	steeringServo1.minLimit = 0.0;
+	steeringServo1.maxLimit = 105.0;
+	steeringServo1.travelOffset = 50;
+
+	//ugv_servoInitServo(&steeringServo1);
+
+	// Start PWM for all of the timer 3 Channels
+
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 	udp_client_connect();
 
   /*
@@ -196,12 +231,19 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  htim3.Instance->CCR1 = (0.5 * TIM_3_4_ARR);
+	  htim3.Instance->CCR2 = (0.5 * TIM_3_4_ARR);
+	  htim3.Instance->CCR3 = (0.5 * TIM_3_4_ARR);
+	  htim3.Instance->CCR4 = (0.5 * TIM_3_4_ARR);
+
+	  htim4.Instance->CCR1 = (0.5 * TIM_3_4_ARR);
+	  htim4.Instance->CCR2 = (0.5 * TIM_3_4_ARR);
+	  htim4.Instance->CCR3 = (0.5 * TIM_3_4_ARR);
+	  htim4.Instance->CCR4 = (0.5 * TIM_3_4_ARR);
+
 
 	  ethernetif_input(&gnetif);
 	  ethernet_link_check_state(&gnetif);
-	  //udpClient
-//	  gnetif.input()
-	  //ethernet_input(p, netif)
 	  sys_check_timeouts();
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
@@ -416,6 +458,128 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 5400;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 199;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 5400;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 199;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+  HAL_TIM_MspPostInit(&htim4);
+
+}
+
+/**
   * @brief TIM10 Initialization Function
   * @param None
   * @retval None
@@ -552,9 +716,6 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
-
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -580,13 +741,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PC6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_6;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : USB_SOF_Pin USB_ID_Pin USB_DM_Pin USB_DP_Pin */
   GPIO_InitStruct.Pin = USB_SOF_Pin|USB_ID_Pin|USB_DM_Pin|USB_DP_Pin;
@@ -619,9 +773,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
 //	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", 10, 20, 0); //Temporarily hard-coding buffer size
 //	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
-
-	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
-	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 }
 
 /*
@@ -637,17 +788,17 @@ void udp_client_connect()
 {
 	err_t err;
 	const uint16_t DRIVE_STM_PORT = 8;
-	const uint16_t JETSON_PORT = 12345;
+	const uint16_t JETSON_PORT = 54321;
 
 	upcb = udp_new(); 	// Create a new UDP control block. Need to check for NULL return
 
 	ip_addr_t my_ip;
-	IP_ADDR4(&my_ip, 192, 168, 20, 21); //Drive stm ip address
+	IP_ADDR4(&my_ip, 192, 168, 20, 42); //DHW STM IP address
 	udp_bind(upcb, &my_ip, DRIVE_STM_PORT);
 
 	// Configure destination IP address
 	// Host ip address: 192.168.20.5
-	// Arbitrary port # selection: 12345
+	// Arbitrary port # selection: 54321
 	ip_addr_t DestIPaddr;
 	IP_ADDR4(&DestIPaddr, 192, 168, 20, 5);  //Jetson Orin Nano host ip address
 	err = udp_connect(upcb, &DestIPaddr, JETSON_PORT);

@@ -571,7 +571,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	static const float Ki_heading = 0.15; //Ki value for heading controller
 	static const float Kp_heading = 2;  //Kp value for heading controller
-	static const float time_step = 0.025;
+	static const float TIME_STEP = 0.025;
 
 	//static float integral_term = 0;
 

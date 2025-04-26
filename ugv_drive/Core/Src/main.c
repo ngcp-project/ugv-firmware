@@ -28,6 +28,7 @@
 
 #include "stdio.h"
 #include "string.h"
+#include "math.h"
 
 #include "ugv_servo.h"  //Include header for servo driver
 #include "motor_control.h" // Motor Control Header for 2023 Driver
@@ -50,7 +51,9 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define RAD_DEGREE_CONV (180.0/M_PI)
+// UGV_LENGTH is the wheel to wheel length of the UGV in feet Might need to convert to meters
+const float UGV_LENGTH = 1.7;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -76,10 +79,12 @@ MotorControl ugv_drive_mtr;
 float steer_val = 0;
 float velocity_val = 0;
 float heading_error = 0;
+float object_distance[5] = {0}; //contains 5 distance measurements from depth camera
 
-// Temporary vars for Payload Arm Control
-int8_t arm_cmds[5];
-
+// Flags that are asserted when == 1
+int auto_mode = 0;
+int obstacle_flag = 0;
+float integral_term = 0;
 
 extern struct netif gnetif;
 struct udp_pcb *upcb;
@@ -180,8 +185,6 @@ int main(void)
 
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
-	ugv_init_F7_Master(&F7_i2c_master, &hi2c1, I2C_BUFF_SIZE, F3_SLAVE_ADDRESS, L4_SLAVE_ADDRESS);
-
 	udp_client_connect();
 
   /*
@@ -616,12 +619,39 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-//	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", 10, 20, 0); //Temporarily hard-coding buffer size
-//	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
+	static const float Ki_heading = 0.15; //Ki value for heading controller
+	static const float Kp_heading = 2;  //Kp value for heading controller
+	static const float TIME_SEP = 0.025;
+
+	if (!auto_mode) // Manual Control Enabled
+	{
+		steer_val *= (-1.0); //Invert Steering for this years UGV
+		ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val);
+	}
+	else // Autonomous Mode enabled
+	{
+		integral_term += heading_error * TIME_SEP;
+		if (integral_term > (steeringServo.maxLimit - steeringServo.minLimit))
+			integral_term = (float)(steeringServo.maxLimit - steeringServo.minLimit);
+		if (integral_term <  (-1.0) * (steeringServo.maxLimit - steeringServo.minLimit))
+			integral_term = (-1.0) * (steeringServo.maxLimit - steeringServo.minLimit);
+
+		// Add logic to account for detecting objects to the left and right
+		if (obstacle_flag >= 1 && object_distance[2] != 0) //Obstacle was detected
+		{
+			// Kinematics for UGV obstacle avoidance logic
+			steer_val = RAD_DEGREE_CONV * atan2(UGV_LENGTH, object_distance[2]);
+			steer_val = steer_val/100; //Normalize the steering so that ugv_servoSetAngle() will command an appropriate value
+		}
+		else
+		{
+			steer_val =  Kp_heading * heading_error + Ki_heading * integral_term;  //Implementation of a PI controller
+		}
+		ugv_servoSetAngle(&steeringServo, steer_val);
+
+	}
 
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
-	ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 }
 
 /*
