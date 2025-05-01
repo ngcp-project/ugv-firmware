@@ -43,11 +43,21 @@
 
 I2C_HandleTypeDef hi2c1;
 
+UART_HandleTypeDef huart3;
+
 /* USER CODE BEGIN PV */
-uint8_t address = (0x48<<1);		// 48
-//uint8_t adc_data[10] = {0};
-uint8_t msg_tx[] = "Hello, World!\n";
-//uint8_t msg_rx[15] = {0};
+uint8_t address = (0x48<<1);				// Constant address 0x48
+uint8_t adc_data[8] = {0};					// At least 2 bytes required to hold 12 data bits from ADC
+uint8_t reg_cmd[4] = {0x00, 0x01, 0x02, 0x03};
+// 0x00 -> conversion register
+// 0x01 -> configuration register
+
+uint8_t config_reg[8] = {0xC5, 0x83, 0xD5, 0x83, 0xE5, 0x83, 0xF5, 0x83};	// see config register in datasheet for more details
+char Tx_output[128] = {0};		// display electronics current, jetson current, and temperature to console
+
+uint16_t electronics_current = 0;
+uint16_t jetson_current = 0;
+uint16_t temperature = 0;
 
 /* USER CODE END PV */
 
@@ -55,6 +65,7 @@ uint8_t msg_tx[] = "Hello, World!\n";
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -93,6 +104,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -104,14 +116,29 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  // I DON'T KNOW IF THIS CODE WORKS, BUT I'M MORE CONFIDENT IN IT THAN THE CODE BELOW THIS BLOCK
+	 HAL_I2C_Master_Transmit(&hi2c1, address, (uint8_t*)(reg_cmd+1), 1, 50); // selects config register to modify
+	 HAL_I2C_Master_Transmit(&hi2c1, address, (uint8_t*)config_reg, 2, 50);  // sets up single-ended input from conversion register to read ADC CH 0
+	 HAL_I2C_Master_Transmit(&hi2c1, address, (uint8_t*)reg_cmd, 1, 50);	 // selects conversion register to modify
+	 HAL_I2C_Master_Receive(&hi2c1, address, (uint8_t*)adc_data, 2, 50); 	 // receives data stored in conversion register
 
-	 //adc_data[0] = 0x01;		// READ cmd
-	 // I2C master transmission
-	 HAL_I2C_Master_Transmit(&hi2c1, address, msg_tx, sizeof(msg_tx), 50);
-	 // I2C slave reception
-	 //HAL_I2C_Slave_Receive(&hi2c1, msg_rx, sizeof(msg_rx), HAL_MAX_DELAY);
+	 electronics_current = (((((adc_data[0] << 8) | adc_data[1]) * 0.002f) - 0.5) * 5);
+	 //sprintf(Tx_output, "Electronics current: %d\n\r", electronics_current);
+	 HAL_Delay(500);
 
-	 HAL_Delay(100);
+	 // DOESN'T WORK
+	 HAL_I2C_Master_Transmit(&hi2c1, address, (uint8_t*)(config_reg+2), 2, 50); // sets up single-ended input from conversion register to read ADC CH 1
+	 HAL_I2C_Master_Receive(&hi2c1, address, (uint8_t*)(adc_data+2), 2, 50); 	// receives data stored in conversion register
+
+	 jetson_current = (((((adc_data[2] << 8) | adc_data[3]) * 0.002f) - 0.5) * 5);
+
+	 HAL_I2C_Master_Transmit(&hi2c1, address, (uint8_t*)(config_reg+4), 2, 50); // sets up single-ended input from conversion register to read ADC CH 2
+	 HAL_I2C_Master_Receive(&hi2c1, address, (uint8_t*)(adc_data+4), 2, 50); 	// receives data stored in conversion register
+
+	 temperature = ((adc_data[4] << 8) | adc_data[5]);
+	 //sprintf(Tx_output, "Jetson current: %d\n\r", jetson_current);
+
+	 HAL_Delay(500);
   }
   /* USER CODE END 3 */
 }
@@ -133,11 +160,23 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 16;
+  RCC_OscInitStruct.PLL.PLLN = 192;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -146,12 +185,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -173,7 +212,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x2000090E;
+  hi2c1.Init.Timing = 0x20303E5D;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -202,6 +241,41 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
 
 }
 
@@ -266,14 +340,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(RMII_TXD1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : STLK_RX_Pin STLK_TX_Pin */
-  GPIO_InitStruct.Pin = STLK_RX_Pin|STLK_TX_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
   GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
