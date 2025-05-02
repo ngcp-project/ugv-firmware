@@ -104,8 +104,8 @@ all: main-build
 main-build: ugv_drive.elf secondary-outputs
 
 # Tool invocations
-ugv_drive.elf ugv_drive.map: $(OBJS) $(USER_OBJS) /home/chris/NGCP/NGCP_24_25/ugv-firmware/ugv_drive/STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "ugv_drive.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/chris/NGCP/NGCP_24_25/ugv-firmware/ugv_drive/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ugv_drive.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+ugv_drive.elf ugv_drive.map: $(OBJS) $(USER_OBJS) /home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/ugv_drive/STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "ugv_drive.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/ugv_drive/STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ugv_drive.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

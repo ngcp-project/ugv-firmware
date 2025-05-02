@@ -43,13 +43,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  19 .debug_macro  000358b6  00000000  00000000  00062b81  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .debug_line   000301c0  00000000  00000000  00098437  2**0
+ 20 .debug_line   000301cc  00000000  00000000  00098437  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_str    001163cc  00000000  00000000  000c85f7  2**0
+ 21 .debug_str    00116409  00000000  00000000  000c8603  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 22 .debug_frame  00008f64  00000000  00000000  001de9c4  2**2
+ 22 .debug_frame  00008f64  00000000  00000000  001dea0c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 23 .debug_line_str 00000061  00000000  00000000  001e7928  2**0
+ 23 .debug_line_str 00000061  00000000  00000000  001e7970  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1620,84 +1620,83 @@ static void MX_TIM10_Init(void)
  8000e6c:	4b1e      	ldr	r3, [pc, #120]	; (8000ee8 <MX_TIM10_Init+0x94>)
  8000e6e:	4a1f      	ldr	r2, [pc, #124]	; (8000eec <MX_TIM10_Init+0x98>)
  8000e70:	601a      	str	r2, [r3, #0]
-  htim10.Init.Prescaler = 71;
+  htim10.Init.Prescaler = 1080;
  8000e72:	4b1d      	ldr	r3, [pc, #116]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000e74:	2247      	movs	r2, #71	; 0x47
- 8000e76:	605a      	str	r2, [r3, #4]
+ 8000e74:	f44f 6287 	mov.w	r2, #1080	; 0x438
+ 8000e78:	605a      	str	r2, [r3, #4]
   htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
- 8000e78:	4b1b      	ldr	r3, [pc, #108]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000e7a:	2200      	movs	r2, #0
- 8000e7c:	609a      	str	r2, [r3, #8]
-  htim10.Init.Period = 29999;
- 8000e7e:	4b1a      	ldr	r3, [pc, #104]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000e80:	f247 522f 	movw	r2, #29999	; 0x752f
- 8000e84:	60da      	str	r2, [r3, #12]
+ 8000e7a:	4b1b      	ldr	r3, [pc, #108]	; (8000ee8 <MX_TIM10_Init+0x94>)
+ 8000e7c:	2200      	movs	r2, #0
+ 8000e7e:	609a      	str	r2, [r3, #8]
+  htim10.Init.Period = 1999;
+ 8000e80:	4b19      	ldr	r3, [pc, #100]	; (8000ee8 <MX_TIM10_Init+0x94>)
+ 8000e82:	f240 72cf 	movw	r2, #1999	; 0x7cf
+ 8000e86:	60da      	str	r2, [r3, #12]
   htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
- 8000e86:	4b18      	ldr	r3, [pc, #96]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000e88:	2200      	movs	r2, #0
- 8000e8a:	611a      	str	r2, [r3, #16]
+ 8000e88:	4b17      	ldr	r3, [pc, #92]	; (8000ee8 <MX_TIM10_Init+0x94>)
+ 8000e8a:	2200      	movs	r2, #0
+ 8000e8c:	611a      	str	r2, [r3, #16]
   htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
- 8000e8c:	4b16      	ldr	r3, [pc, #88]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000e8e:	2280      	movs	r2, #128	; 0x80
- 8000e90:	619a      	str	r2, [r3, #24]
+ 8000e8e:	4b16      	ldr	r3, [pc, #88]	; (8000ee8 <MX_TIM10_Init+0x94>)
+ 8000e90:	2280      	movs	r2, #128	; 0x80
+ 8000e92:	619a      	str	r2, [r3, #24]
   if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
- 8000e92:	4815      	ldr	r0, [pc, #84]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000e94:	f004 fe42 	bl	8005b1c <HAL_TIM_Base_Init>
- 8000e98:	4603      	mov	r3, r0
- 8000e9a:	2b00      	cmp	r3, #0
- 8000e9c:	d001      	beq.n	8000ea2 <MX_TIM10_Init+0x4e>
+ 8000e94:	4814      	ldr	r0, [pc, #80]	; (8000ee8 <MX_TIM10_Init+0x94>)
+ 8000e96:	f004 fe41 	bl	8005b1c <HAL_TIM_Base_Init>
+ 8000e9a:	4603      	mov	r3, r0
+ 8000e9c:	2b00      	cmp	r3, #0
+ 8000e9e:	d001      	beq.n	8000ea4 <MX_TIM10_Init+0x50>
   {
     Error_Handler();
- 8000e9e:	f000 fb1b 	bl	80014d8 <Error_Handler>
+ 8000ea0:	f000 fb1a 	bl	80014d8 <Error_Handler>
   }
   if (HAL_TIM_PWM_Init(&htim10) != HAL_OK)
- 8000ea2:	4811      	ldr	r0, [pc, #68]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000ea4:	f004 ff0a 	bl	8005cbc <HAL_TIM_PWM_Init>
- 8000ea8:	4603      	mov	r3, r0
- 8000eaa:	2b00      	cmp	r3, #0
- 8000eac:	d001      	beq.n	8000eb2 <MX_TIM10_Init+0x5e>
+ 8000ea4:	4810      	ldr	r0, [pc, #64]	; (8000ee8 <MX_TIM10_Init+0x94>)
+ 8000ea6:	f004 ff09 	bl	8005cbc <HAL_TIM_PWM_Init>
+ 8000eaa:	4603      	mov	r3, r0
+ 8000eac:	2b00      	cmp	r3, #0
+ 8000eae:	d001      	beq.n	8000eb4 <MX_TIM10_Init+0x60>
   {
     Error_Handler();
- 8000eae:	f000 fb13 	bl	80014d8 <Error_Handler>
+ 8000eb0:	f000 fb12 	bl	80014d8 <Error_Handler>
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
- 8000eb2:	2360      	movs	r3, #96	; 0x60
- 8000eb4:	607b      	str	r3, [r7, #4]
+ 8000eb4:	2360      	movs	r3, #96	; 0x60
+ 8000eb6:	607b      	str	r3, [r7, #4]
   sConfigOC.Pulse = 0;
- 8000eb6:	2300      	movs	r3, #0
- 8000eb8:	60bb      	str	r3, [r7, #8]
+ 8000eb8:	2300      	movs	r3, #0
+ 8000eba:	60bb      	str	r3, [r7, #8]
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
- 8000eba:	2300      	movs	r3, #0
- 8000ebc:	60fb      	str	r3, [r7, #12]
+ 8000ebc:	2300      	movs	r3, #0
+ 8000ebe:	60fb      	str	r3, [r7, #12]
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
- 8000ebe:	2300      	movs	r3, #0
- 8000ec0:	617b      	str	r3, [r7, #20]
+ 8000ec0:	2300      	movs	r3, #0
+ 8000ec2:	617b      	str	r3, [r7, #20]
   if (HAL_TIM_PWM_ConfigChannel(&htim10, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
- 8000ec2:	1d3b      	adds	r3, r7, #4
- 8000ec4:	2200      	movs	r2, #0
- 8000ec6:	4619      	mov	r1, r3
- 8000ec8:	4807      	ldr	r0, [pc, #28]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000eca:	f005 f951 	bl	8006170 <HAL_TIM_PWM_ConfigChannel>
- 8000ece:	4603      	mov	r3, r0
- 8000ed0:	2b00      	cmp	r3, #0
- 8000ed2:	d001      	beq.n	8000ed8 <MX_TIM10_Init+0x84>
+ 8000ec4:	1d3b      	adds	r3, r7, #4
+ 8000ec6:	2200      	movs	r2, #0
+ 8000ec8:	4619      	mov	r1, r3
+ 8000eca:	4807      	ldr	r0, [pc, #28]	; (8000ee8 <MX_TIM10_Init+0x94>)
+ 8000ecc:	f005 f950 	bl	8006170 <HAL_TIM_PWM_ConfigChannel>
+ 8000ed0:	4603      	mov	r3, r0
+ 8000ed2:	2b00      	cmp	r3, #0
+ 8000ed4:	d001      	beq.n	8000eda <MX_TIM10_Init+0x86>
   {
     Error_Handler();
- 8000ed4:	f000 fb00 	bl	80014d8 <Error_Handler>
+ 8000ed6:	f000 faff 	bl	80014d8 <Error_Handler>
   }
   /* USER CODE BEGIN TIM10_Init 2 */
 
   /* USER CODE END TIM10_Init 2 */
   HAL_TIM_MspPostInit(&htim10);
- 8000ed8:	4803      	ldr	r0, [pc, #12]	; (8000ee8 <MX_TIM10_Init+0x94>)
- 8000eda:	f000 fc1b 	bl	8001714 <HAL_TIM_MspPostInit>
+ 8000eda:	4803      	ldr	r0, [pc, #12]	; (8000ee8 <MX_TIM10_Init+0x94>)
+ 8000edc:	f000 fc1a 	bl	8001714 <HAL_TIM_MspPostInit>
 
 }
- 8000ede:	bf00      	nop
- 8000ee0:	3720      	adds	r7, #32
- 8000ee2:	46bd      	mov	sp, r7
- 8000ee4:	bd80      	pop	{r7, pc}
- 8000ee6:	bf00      	nop
+ 8000ee0:	bf00      	nop
+ 8000ee2:	3720      	adds	r7, #32
+ 8000ee4:	46bd      	mov	sp, r7
+ 8000ee6:	bd80      	pop	{r7, pc}
  8000ee8:	2000043c 	.word	0x2000043c
  8000eec:	40014400 	.word	0x40014400
 
@@ -3834,104 +3833,46 @@ void SystemInit(void)
  8001b50:	e000ed00 	.word	0xe000ed00
 
 08001b54 <Reset_Handler>:
-
-    .section  .text.Reset_Handler
-  .weak  Reset_Handler
-  .type  Reset_Handler, %function
-Reset_Handler:  
-  ldr   sp, =_estack      /* set stack pointer */
  8001b54:	f8df d034 	ldr.w	sp, [pc, #52]	; 8001b8c <LoopFillZerobss+0xe>
-
-/* Call the clock system initialization function.*/
-  bl  SystemInit   
  8001b58:	f7ff ffea 	bl	8001b30 <SystemInit>
-
-/* Copy the data segment initializers from flash to SRAM */  
-  ldr r0, =_sdata
  8001b5c:	480c      	ldr	r0, [pc, #48]	; (8001b90 <LoopFillZerobss+0x12>)
-  ldr r1, =_edata
  8001b5e:	490d      	ldr	r1, [pc, #52]	; (8001b94 <LoopFillZerobss+0x16>)
-  ldr r2, =_sidata
  8001b60:	4a0d      	ldr	r2, [pc, #52]	; (8001b98 <LoopFillZerobss+0x1a>)
-  movs r3, #0
  8001b62:	2300      	movs	r3, #0
-  b LoopCopyDataInit
  8001b64:	e002      	b.n	8001b6c <LoopCopyDataInit>
 
 08001b66 <CopyDataInit>:
-
-CopyDataInit:
-  ldr r4, [r2, r3]
  8001b66:	58d4      	ldr	r4, [r2, r3]
-  str r4, [r0, r3]
  8001b68:	50c4      	str	r4, [r0, r3]
-  adds r3, r3, #4
  8001b6a:	3304      	adds	r3, #4
 
 08001b6c <LoopCopyDataInit>:
-
-LoopCopyDataInit:
-  adds r4, r0, r3
  8001b6c:	18c4      	adds	r4, r0, r3
-  cmp r4, r1
  8001b6e:	428c      	cmp	r4, r1
-  bcc CopyDataInit
  8001b70:	d3f9      	bcc.n	8001b66 <CopyDataInit>
-  
-/* Zero fill the bss segment. */
-  ldr r2, =_sbss
  8001b72:	4a0a      	ldr	r2, [pc, #40]	; (8001b9c <LoopFillZerobss+0x1e>)
-  ldr r4, =_ebss
  8001b74:	4c0a      	ldr	r4, [pc, #40]	; (8001ba0 <LoopFillZerobss+0x22>)
-  movs r3, #0
  8001b76:	2300      	movs	r3, #0
-  b LoopFillZerobss
  8001b78:	e001      	b.n	8001b7e <LoopFillZerobss>
 
 08001b7a <FillZerobss>:
-
-FillZerobss:
-  str  r3, [r2]
  8001b7a:	6013      	str	r3, [r2, #0]
-  adds r2, r2, #4
  8001b7c:	3204      	adds	r2, #4
 
 08001b7e <LoopFillZerobss>:
-
-LoopFillZerobss:
-  cmp r2, r4
  8001b7e:	42a2      	cmp	r2, r4
-  bcc FillZerobss
  8001b80:	d3fb      	bcc.n	8001b7a <FillZerobss>
-  
-/* Call static constructors */
-    bl __libc_init_array
  8001b82:	f011 fe03 	bl	801378c <__libc_init_array>
-/* Call the application's entry point.*/
-  bl  main
  8001b86:	f7fe ff87 	bl	8000a98 <main>
-  bx  lr    
  8001b8a:	4770      	bx	lr
-  ldr   sp, =_estack      /* set stack pointer */
  8001b8c:	20080000 	.word	0x20080000
-  ldr r0, =_sdata
  8001b90:	20000000 	.word	0x20000000
-  ldr r1, =_edata
  8001b94:	200001f4 	.word	0x200001f4
-  ldr r2, =_sidata
  8001b98:	08018340 	.word	0x08018340
-  ldr r2, =_sbss
  8001b9c:	20000334 	.word	0x20000334
-  ldr r4, =_ebss
  8001ba0:	2000aaec 	.word	0x2000aaec
 
 08001ba4 <ADC_IRQHandler>:
- * @retval None       
-*/
-    .section  .text.Default_Handler,"ax",%progbits
-Default_Handler:
-Infinite_Loop:
-  b  Infinite_Loop
  8001ba4:	e7fe      	b.n	8001ba4 <ADC_IRQHandler>
 
 08001ba6 <LAN8742_RegisterBusIO>:

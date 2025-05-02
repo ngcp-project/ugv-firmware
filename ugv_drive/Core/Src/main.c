@@ -32,7 +32,6 @@
 
 #include "ugv_servo.h"  //Include header for servo driver
 #include "motor_control.h" // Motor Control Header for 2023 Driver
-#include "F7_I2C_Master.h"
 
 
 
@@ -68,8 +67,6 @@ TIM_HandleTypeDef htim13;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-
-F7_I2C_Master F7_i2c_master;
 
 
 // instantiate steering servo struct
@@ -208,8 +205,6 @@ int main(void)
 	  sys_check_timeouts();
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-//	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", arm_cmds[0], arm_cmds[1], 0); //Temporarily hard-coding buffer size
-//	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -436,9 +431,9 @@ static void MX_TIM10_Init(void)
 
   /* USER CODE END TIM10_Init 1 */
   htim10.Instance = TIM10;
-  htim10.Init.Prescaler = 71;
+  htim10.Init.Prescaler = 1080;
   htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim10.Init.Period = 29999;
+  htim10.Init.Period = 1999;
   htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
