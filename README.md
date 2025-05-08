@@ -14,3 +14,6 @@ What works:
 What doesn't work:
 -Values are not correct
 -They are not be updating consistently (or at all)
+
+5/8/25, Work from semester:
+- Uploaded all files to GitHub pertaining to UART, CAN, PWM, and I2C tasks
