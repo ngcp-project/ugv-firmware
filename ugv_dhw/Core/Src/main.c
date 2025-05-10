@@ -68,13 +68,18 @@ TIM_HandleTypeDef htim13;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+ugvServo_t elbow_servo;
+ugvServo_t forarm_servo;
+ugvServo_t servo3;
+ugvServo_t servo4;
+ugvServo_t servo5;
 
-F7_I2C_Master F7_i2c_master;
+float elbow_duty = 0;
+float forarm_duty = 0;
+float servo3_duty = 0;
+float servo4_duty = 0;
+float servo5_duty = 0;
 
-
-// instantiate steering servo struct
-ugvServo_t steeringServo;
-ugvServo_t steeringServo1;
 MotorControl ugv_drive_mtr;
 // Variable to control steering angle
 float steer_val = 0;
@@ -82,7 +87,14 @@ float velocity_val = 0;
 float heading_error = 0;
 
 // Temporary vars for Payload Arm Control
-int8_t arm_cmds[5];
+// arm_cmd[0] = Elbow
+// arm_cmd[1] = Forarm
+// arm_cmd[2] = wrist
+// arm_cmd[3] = base
+// arm_cmd[4] = claw
+
+float  arm_cmds[10];
+
 
 
 extern struct netif gnetif;
@@ -172,51 +184,77 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
-	// 2022 Servo Driver
-	steeringServo.timerInstance = &htim10;
-	steeringServo.timerCCRX = &TIM10->CCR1;
-	steeringServo.timerCh = TIM_CHANNEL_1;
-	steeringServo.timerARR = htim10.Init.Period;
-	steeringServo.minPulse = 500;
-	steeringServo.maxPulse = 2500;
-	steeringServo.timerPeriod = 20000;
-	steeringServo.travelAngle = 270.0;
+	elbow_servo.timerInstance = &htim3;
+	elbow_servo.timerCCRX = &TIM3->CCR1;
+	elbow_servo.timerCh = TIM_CHANNEL_1;
+	elbow_servo.timerARR = htim3.Init.Period;
+	elbow_servo.minPulse = 500;
+	elbow_servo.maxPulse = 2500;
+	elbow_servo.timerPeriod = 20000;
+	elbow_servo.travelAngle = 360.0;
+	elbow_servo.minLimit = 0.0;
+	elbow_servo.maxLimit = 270.0;
+	elbow_servo.travelOffset = 270;
 
-	steeringServo.minLimit = 0.0;
-	steeringServo.maxLimit = 105.0;
-	steeringServo.travelOffset = 50;
+    forarm_servo.timerInstance = &htim3;
+    forarm_servo.timerCCRX = &TIM3->CCR2;
+    forarm_servo.timerCh = TIM_CHANNEL_2;
+    forarm_servo.timerARR = htim3.Init.Period;
+    forarm_servo.minPulse = 500;
+    forarm_servo.maxPulse = 2700;
+    forarm_servo.timerPeriod = 20000;
+    forarm_servo.travelAngle = 360.0;
+    forarm_servo.minLimit = 0;
+    forarm_servo.maxLimit = 270;
+    forarm_servo.travelOffset = 0;
 
-	ugv_servoInitServo(&steeringServo);
-	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
-	ugv_init_F7_Master(&F7_i2c_master, &hi2c1, I2C_BUFF_SIZE, F3_SLAVE_ADDRESS, L4_SLAVE_ADDRESS);
+    //Wrist Servo
+    servo3.timerInstance = &htim3;
+    servo3.timerCCRX = &TIM3->CCR3;
+    servo3.timerCh = TIM_CHANNEL_3;
+    servo3.timerARR = htim3.Init.Period;
+    servo3.minPulse = 500;
+    servo3.maxPulse = 2700;
+    servo3.timerPeriod = 20000;
+    servo3.travelAngle = 360.0;
+    servo3.minLimit = 0;
+    servo3.maxLimit = 270;
+    servo3.travelOffset = 170;
 
-	// 2022 Servo Driver
-	steeringServo1.timerInstance = &htim3;
-	steeringServo1.timerCCRX = &TIM3->CCR1;
-	steeringServo1.timerCh = TIM_CHANNEL_1;
-	steeringServo1.timerARR = htim3.Init.Period;
-	steeringServo1.minPulse = 500;
-	steeringServo1.maxPulse = 2500;
-	steeringServo1.timerPeriod = 20000;
-	steeringServo1.travelAngle = 270.0;
+    //Base Servo
+    servo4.timerInstance = &htim3;
+    servo4.timerCCRX = &TIM3->CCR4;
+    servo4.timerCh = TIM_CHANNEL_4;
+    servo4.timerARR = htim3.Init.Period;
+    servo4.minPulse = 500;
+    servo4.maxPulse = 2700;
+    servo4.timerPeriod = 20000;
+    servo4.travelAngle = 360.0;
+    servo4.minLimit = 0;
+    servo4.maxLimit = 270;
+    servo4.travelOffset = 55;
 
-	steeringServo1.minLimit = 0.0;
-	steeringServo1.maxLimit = 105.0;
-	steeringServo1.travelOffset = 50;
+    //Claw Servo
+    servo5.timerInstance = &htim4;
+    servo5.timerCCRX = &TIM4->CCR1;
+    servo5.timerCh = TIM_CHANNEL_1;
+    servo5.timerARR = htim4.Init.Period;
+    servo5.minPulse = 500;
+    servo5.maxPulse = 2700;
+    servo5.timerPeriod = 20000;
+    servo5.travelAngle = 360.0;
+    servo5.minLimit = 0;
+    servo5.maxLimit = 270;
+    servo5.travelOffset = 0;
 
-	//ugv_servoInitServo(&steeringServo1);
+	ugv_servoInitServo(&elbow_servo);
+	ugv_servoInitServo(&forarm_servo);
+	ugv_servoInitServo(&servo3);
+	ugv_servoInitServo(&servo4);
+	ugv_servoInitServo(&servo5);
 
 	// Start PWM for all of the timer 3 Channels
 
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 	udp_client_connect();
 
   /*
@@ -231,24 +269,19 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  htim3.Instance->CCR1 = (0.5 * TIM_3_4_ARR);
-	  htim3.Instance->CCR2 = (0.5 * TIM_3_4_ARR);
-	  htim3.Instance->CCR3 = (0.5 * TIM_3_4_ARR);
-	  htim3.Instance->CCR4 = (0.5 * TIM_3_4_ARR);
-
-	  htim4.Instance->CCR1 = (0.5 * TIM_3_4_ARR);
-	  htim4.Instance->CCR2 = (0.5 * TIM_3_4_ARR);
-	  htim4.Instance->CCR3 = (0.5 * TIM_3_4_ARR);
-	  htim4.Instance->CCR4 = (0.5 * TIM_3_4_ARR);
+	  ugv_servoSetAngle(&elbow_servo, elbow_duty);
+	  ugv_servoSetAngle(&forarm_servo, forarm_duty);
+	  ugv_servoSetAngle(&servo3, servo3_duty);
+	  ugv_servoSetAngle(&servo4, servo4_duty);
+	  ugv_servoSetAngle(&servo5, servo5_duty);
 
 
 	  ethernetif_input(&gnetif);
 	  ethernet_link_check_state(&gnetif);
 	  sys_check_timeouts();
 
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-//	F7_i2c_master.buffSize = sprintf((char *)F7_i2c_master.TxBuffer, "%d, %d, %d", arm_cmds[0], arm_cmds[1], 0); //Temporarily hard-coding buffer size
-//	HAL_I2C_Master_Transmit_IT(F7_i2c_master.I2C_Handle, (MASTER_W(F3_SLAVE_ADDRESS)), (uint8_t *)F7_i2c_master.TxBuffer, F7_i2c_master.buffSize);
+	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -476,9 +509,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 5400;
+  htim3.Init.Prescaler = 540;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 199;
+  htim3.Init.Period = 1999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
@@ -537,9 +570,9 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 5400;
+  htim4.Init.Prescaler = 540;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 199;
+  htim4.Init.Period = 1999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
@@ -859,15 +892,21 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 		buffer_data = strtok(NULL, ",");
 	}
 
+	// Temporary vars for Payload Arm Control
+	// arm_cmd[0] = Elbow
+	// arm_cmd[1] = Forarm
+	// arm_cmd[2] = wrist
+	// arm_cmd[3] = base
+	// arm_cmd[4] = claw
+
 	// Free receive pbuf;
 	pbuf_free(p);
 
-	velocity_val = drive_vals[0];
-	steer_val = drive_vals[1];
-
-	//Temporary addition for payload arm acutation
-//	arm_cmds[0] = (int8_t)drive_vals[2];
-//	arm_cmds[1] = (int8_t)drive_vals[3];
+	elbow_duty = drive_vals[0];
+	forarm_duty = drive_vals[1];
+	servo3_duty = drive_vals[2];
+	servo4_duty = drive_vals[3];
+	servo5_duty = drive_vals[4];
 
 	//Might need to reset drive_vals to 0
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
