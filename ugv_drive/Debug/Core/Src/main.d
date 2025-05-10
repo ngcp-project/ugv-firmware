@@ -73,7 +73,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/icmp.h \
  /home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/ugv_drive/Drivers/ugv_drivers/servo/ugv_servo.h \
  /home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/ugv_drive/Drivers/ugv_drivers/drive_motor/motor_control.h \
- /home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/ugv_drive/Drivers/ugv_drivers/f7_i2c_master/F7_I2C_Master.h
+ ../Core/Inc/pid_controller.h ../Core/Inc/main.h \
+ ../Core/Inc/ugv_encoder.h ../Core/Inc/kinematic.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:
 ../Core/Inc/stm32f7xx_hal_conf.h:
@@ -149,4 +150,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/icmp.h:
 /home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/ugv_drive/Drivers/ugv_drivers/servo/ugv_servo.h:
 /home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/ugv_drive/Drivers/ugv_drivers/drive_motor/motor_control.h:
-/home/chris/NGCP/NGCP_UGV_24_25/ugv-firmware/ugv_drive/Drivers/ugv_drivers/f7_i2c_master/F7_I2C_Master.h:
+../Core/Inc/pid_controller.h:
+../Core/Inc/main.h:
+../Core/Inc/ugv_encoder.h:
+../Core/Inc/kinematic.h:

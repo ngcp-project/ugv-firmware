@@ -34,6 +34,12 @@
 #include "motor_control.h" // Motor Control Header for 2023 Driver
 
 
+// Korbin Code
+#include "pid_controller.h"
+#include "ugv_encoder.h"
+#include "kinematic.h"
+
+
 
 /* USER CODE END Includes */
 
@@ -61,6 +67,7 @@ I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim10;
 TIM_HandleTypeDef htim13;
 
@@ -77,6 +84,28 @@ float steer_val = 0;
 float velocity_val = 0;
 float heading_error = 0;
 float object_distance[5] = {0}; //contains 5 distance measurements from depth camera
+
+
+//Korbin Code
+float velocity_set = 0;
+float velocity_max = 7.58113636; //in mph
+float velocity_error = 0;
+
+kinematic kin;
+position pos;
+
+float motor_speed = 0;
+
+// encoder variables
+uint32_t enc = 0;
+
+
+// PID variables
+float P = 1.0;
+float I = 1.0;
+float D = 0.00001;
+
+float PID_value = 0.0;
 
 // Flags that are asserted when == 1
 int auto_mode = 0;
@@ -101,6 +130,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM13_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
@@ -116,6 +146,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	enc = __HAL_TIM_GET_COUNTER(htim);
+}
 
 /* USER CODE END 0 */
 
@@ -164,6 +199,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM13_Init();
   MX_I2C1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
 	// 2022 Servo Driver
@@ -176,13 +212,21 @@ int main(void)
 	steeringServo.timerPeriod = 20000;
 	steeringServo.travelAngle = 270.0;
 
-	steeringServo.minLimit = 0.0;
-	steeringServo.maxLimit = 105.0;
+	steeringServo.minLimit = 20.0;
+	steeringServo.maxLimit = 65.0;
 	steeringServo.travelOffset = 50;
+
+	// kinematics
+	kin.L = 17; // wheel distance from front to rear in inches
+	kin.steering_angle = 0;
+	kin.velocity = 0;
 
 	ugv_servoInitServo(&steeringServo);
 	MotorControl_Init(&ugv_drive_mtr, &htim2, TIM_CHANNEL_1, TIM_CHANNEL_3);
 	udp_client_connect();
+
+  // Start Timer 3 Encoder mode
+  HAL_TIM_Encoder_Start_IT(&htim3, TIM_CHANNEL_ALL);
 
   /*
    * Start HAL timer interrupt. Interrupt occurs once every 25ms
@@ -199,9 +243,6 @@ int main(void)
 
 	  ethernetif_input(&gnetif);
 	  ethernet_link_check_state(&gnetif);
-	  //udpClient
-//	  gnetif.input()
-	  //ethernet_input(p, netif)
 	  sys_check_timeouts();
 
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
@@ -414,6 +455,55 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 0;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 0;
+  if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief TIM10 Initialization Function
   * @param None
   * @retval None
@@ -620,7 +710,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	if (!auto_mode) // Manual Control Enabled
 	{
-		steer_val *= (-1.0); //Invert Steering for this years UGV
+		//steer_val *= (-1.0);
 		ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val);
 	}
 	else // Autonomous Mode enabled
