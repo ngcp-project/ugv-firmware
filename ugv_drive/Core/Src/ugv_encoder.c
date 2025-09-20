@@ -11,7 +11,7 @@
 
 
 		float wheel_diameter = 5.255; //wheel diameter in inch
-		float enc_counts = 1404; //encoder counts/rotation (old value 659.232)
+		float enc_counts = 243; //encoder counts/rotation (old value 659.232)
 		float time = 2400; //1min/25ms
 
 float encoder(uint32_t e)

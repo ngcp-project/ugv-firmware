@@ -87,6 +87,7 @@ float object_distance[5] = {0}; //contains 5 distance measurements from depth ca
 
 
 //Korbin Code
+float velocity = 0;
 float velocity_set = 0;
 float velocity_max = 7.58113636; //in mph
 float velocity_error = 0;
@@ -101,8 +102,8 @@ uint32_t enc = 0;
 
 
 // PID variables
-float P = 1.0;
-float I = 1.0;
+float P = 3.0;
+float I = 2.0;
 float D = 0.00001;
 
 float PID_value = 0.0;
@@ -212,8 +213,8 @@ int main(void)
 	steeringServo.timerPeriod = 20000;
 	steeringServo.travelAngle = 270.0;
 
-	steeringServo.minLimit = 20.0;
-	steeringServo.maxLimit = 65.0;
+	steeringServo.minLimit = 5.0;
+	steeringServo.maxLimit = 105.0;
 	steeringServo.travelOffset = 50;
 
 	// kinematics
@@ -478,7 +479,7 @@ static void MX_TIM3_Init(void)
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -704,14 +705,15 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	static const float Ki_heading = 0.15; //Ki value for heading controller
-	static const float Kp_heading = 2;  //Kp value for heading controller
+	static const float Ki_heading = 0.18; //Ki value for heading controller
+	static const float Kp_heading = 3;  //Kp value for heading controller
 	static const float TIME_SEP = 0.025;
 
 	if (!auto_mode) // Manual Control Enabled
 	{
 		//steer_val *= (-1.0);
 		ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val);
+		MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 	}
 	else // Autonomous Mode enabled
 	{
@@ -726,17 +728,43 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		{
 			// Kinematics for UGV obstacle avoidance logic
 			steer_val = RAD_DEGREE_CONV * atan2(UGV_LENGTH, object_distance[2]);
-			steer_val = steer_val/100; //Normalize the steering so that ugv_servoSetAngle() will command an appropriate value
+			//steer_val = steer_val;
 		}
 		else
 		{
 			steer_val =  Kp_heading * heading_error + Ki_heading * integral_term;  //Implementation of a PI controller
 		}
+
+		velocity_set = velocity_val * velocity_max; //When autonomous is enabled we use velocity_val as a scaling term that is multiplied by velocity_max
+
+		//PID
+		PID_value = PID_controller_1(abs(velocity_set), velocity, P, I, D, velocity_max);
+
+		//motor driver
+		if(velocity_set >= 0)
+		{
+			velocity_val = PID_value / velocity_max; // calculate the percentage of the velocity
+		}
+		else
+		{
+			velocity_val = (PID_value / velocity_max) * -1.0; // calculate the percentage of the velocity
+		}
+
+		steer_val *= (-1); //Invert Steering for this years ugv
 		ugv_servoSetAngle(&steeringServo, steer_val);
+		MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 
 	}
 
-	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+	//MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
+	//Encoder
+	velocity = encoder(enc);
+
+	// kinematics
+	kin.velocity = velocity; //assigns the velocity value to the kinematics struct
+	kin.steering_angle = heading_error; //assigns the steering value to the kinematics struct
+
+	dead_reckoning(&kin, &pos, 0.025); //calculates and returns the position values of dead reckoning
 }
 
 /*
@@ -826,6 +854,17 @@ void udp_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 	pbuf_free(p);
 	velocity_val = drive_vals[0];
 	steer_val = drive_vals[1];
+	auto_mode = (int)drive_vals[2];
+	heading_error = drive_vals[3]; //Receive Heading Error
+
+
+	object_distance[0] = drive_vals[4];
+	object_distance[1] = drive_vals[5];
+	object_distance[2] = drive_vals[6];
+	object_distance[3] = drive_vals[7];
+	object_distance[4] = drive_vals[8];
+	obstacle_flag = (int)drive_vals[9];
+
 
 	/* NEED TO DIVIDE HEADING ERROR BY 100 TO RESCALE VALUE */
 
