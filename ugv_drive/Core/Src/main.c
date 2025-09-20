@@ -698,7 +698,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /*
- * The timer callback is executing the heading control loop every T = $(50ms)
+ * The timer callback is executing the heading control loop every T = 25ms
  *
  */
 
