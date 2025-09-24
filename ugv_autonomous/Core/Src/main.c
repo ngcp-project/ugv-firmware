@@ -576,7 +576,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	//static float integral_term = 0;
 
 
-	integral_term += heading_error * time_step;
+	integral_term += heading_error * TIME_STEP;
 	//integral_term += heading_error;
 	// Need to adjust saturation limits
 	if (integral_term > (steeringServo.maxLimit - steeringServo.minLimit))
@@ -601,7 +601,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	//ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val + 0.224*steeringServo.maxLimit);
 	//ugv_servoSetAngle(&steeringServo, steeringServo.maxLimit *steer_val);
-	steer_val *= (-1.0);
+	steer_val *= (-100.0);
 	ugv_servoSetAngle(&steeringServo, steer_val);
 	MotorControl_SetSpeed(&ugv_drive_mtr, &htim2, velocity_val);
 //	steer_val = 0;
