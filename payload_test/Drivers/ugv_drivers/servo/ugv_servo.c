@@ -7,7 +7,7 @@ void ugv_servoInitServo(ugvServo_t *servoM){
 	servoM->maxPeriod = (int) (servoM->timerARR)*(servoM->maxPulse/servoM->timerPeriod);
 	servoM->minPeriod = (int) (servoM->timerARR)*(servoM->minPulse/servoM->timerPeriod);
 
-	ugv_servoSetAngle(servoM, servoM->travelOffset);
+	ugv_servoSetAngle(servoM, 0);
 }
 
 /**

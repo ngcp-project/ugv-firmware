@@ -44,15 +44,24 @@
 /* Private variables ---------------------------------------------------------*/
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim10;
 
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-ugvServo_t steeringServo;
+ugvServo_t elbow_servo;
 ugvServo_t forarm_servo;
+ugvServo_t servo3;
+ugvServo_t servo4;
+ugvServo_t servo5;
+
 float elbow_serv = 0;
 float forarm_serv = 0;
+float servo3_duty = 0;
+float servo4_duty = 0;
+float servo5_duty = 0;
 
 /* USER CODE END PV */
 
@@ -62,6 +71,8 @@ static void MX_GPIO_Init(void);
 static void MX_TIM10_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_TIM3_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -102,33 +113,35 @@ int main(void)
   MX_TIM10_Init();
   MX_USART3_UART_Init();
   MX_TIM1_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
   // 2022 Servo Driver
-    steeringServo.timerInstance = &htim1;
-    steeringServo.timerCCRX = &TIM1->CCR1;
-    steeringServo.timerCh = TIM_CHANNEL_1;
-    steeringServo.timerARR = htim1.Init.Period;
-    steeringServo.minPulse = 500;
-    steeringServo.maxPulse = 2700;
-    steeringServo.timerPeriod = 20000;
-    steeringServo.travelAngle = 360.0;
-//	steeringServo.minLimit = 1;
-//	steeringServo.maxLimit = 270.0;
+    elbow_servo.timerInstance = &htim3;
+    elbow_servo.timerCCRX = &TIM3->CCR1;
+    elbow_servo.timerCh = TIM_CHANNEL_1;
+    elbow_servo.timerARR = htim3.Init.Period;
+    elbow_servo.minPulse = 500;
+    elbow_servo.maxPulse = 2700;
+    elbow_servo.timerPeriod = 20000;
+    elbow_servo.travelAngle = 360.0;
+//	elbow_servo.minLimit = 1;
+//	elbow_servo.maxLimit = 270.0;
 
-//	steeringServo.minLimit = 0;
-//	steeringServo.maxLimit = 360.0;
-//	steeringServo.travelOffset = 50;
+//	elbow_servo.minLimit = 0;
+//	elbow_servo.maxLimit = 360.0;
+//	elbow_servo.travelOffset = 50;
 
-	steeringServo.minLimit = 0;
-	steeringServo.maxLimit = 270;
-	steeringServo.travelOffset = 270;
+	elbow_servo.minLimit = 0;
+	elbow_servo.maxLimit = 270;
+	elbow_servo.travelOffset = 270;
 
 
-    forarm_servo.timerInstance = &htim1;
-    forarm_servo.timerCCRX = &TIM1->CCR2;
+    forarm_servo.timerInstance = &htim3;
+    forarm_servo.timerCCRX = &TIM3->CCR2;
     forarm_servo.timerCh = TIM_CHANNEL_2;
-    forarm_servo.timerARR = htim1.Init.Period;
+    forarm_servo.timerARR = htim3.Init.Period;
     forarm_servo.minPulse = 500;
     forarm_servo.maxPulse = 2700;
     forarm_servo.timerPeriod = 20000;
@@ -137,8 +150,55 @@ int main(void)
     forarm_servo.maxLimit = 270;
     forarm_servo.travelOffset = 0;
 
-	ugv_servoInitServo(&steeringServo);
+
+    //Wrist Servo
+    servo3.timerInstance = &htim3;
+    servo3.timerCCRX = &TIM3->CCR3;
+    servo3.timerCh = TIM_CHANNEL_3;
+    servo3.timerARR = htim3.Init.Period;
+    servo3.minPulse = 500;
+    servo3.maxPulse = 2700;
+    servo3.timerPeriod = 20000;
+    servo3.travelAngle = 360.0;
+    servo3.minLimit = 0;
+    servo3.maxLimit = 270;
+    servo3.travelOffset = 170;
+
+
+    //Base Servo
+    servo4.timerInstance = &htim3;
+    servo4.timerCCRX = &TIM3->CCR4;
+    servo4.timerCh = TIM_CHANNEL_4;
+    servo4.timerARR = htim3.Init.Period;
+    servo4.minPulse = 500;
+    servo4.maxPulse = 2700;
+    servo4.timerPeriod = 20000;
+    servo4.travelAngle = 360.0;
+    servo4.minLimit = 0;
+    servo4.maxLimit = 270;
+    servo4.travelOffset = 55;
+
+
+    //Claw Servo
+    servo5.timerInstance = &htim4;
+    servo5.timerCCRX = &TIM4->CCR1;
+    servo5.timerCh = TIM_CHANNEL_1;
+    servo5.timerARR = htim4.Init.Period;
+    servo5.minPulse = 500;
+    servo5.maxPulse = 2700;
+    servo5.timerPeriod = 20000;
+    servo5.travelAngle = 360.0;
+    servo5.minLimit = 0;
+    servo5.maxLimit = 270;
+    servo5.travelOffset = 0;
+
+
+	ugv_servoInitServo(&elbow_servo);
 	ugv_servoInitServo(&forarm_servo);
+	ugv_servoInitServo(&servo3);
+	ugv_servoInitServo(&servo4);
+	ugv_servoInitServo(&servo5);
+
 
 	//steer_val = 100;
   /* USER CODE END 2 */
@@ -147,8 +207,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  ugv_servoSetAngle(&steeringServo, elbow_serv);
+	  ugv_servoSetAngle(&elbow_servo, elbow_serv);
 	  ugv_servoSetAngle(&forarm_servo, forarm_serv);
+	  ugv_servoSetAngle(&servo3, servo3_duty);
+	  ugv_servoSetAngle(&servo4, servo4_duty);
+	  ugv_servoSetAngle(&servo5, servo5_duty);
+
 
     /* USER CODE END WHILE */
 
@@ -290,6 +354,116 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
   HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 1080;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 1999;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 1080;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 1999;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+  HAL_TIM_MspPostInit(&htim4);
 
 }
 
